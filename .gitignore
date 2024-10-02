@@ -1,0 +1,18 @@
+# Virtual environment
+sbom_env/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django stuff
+*.log
+*.pot
+*.pyc
+*.so
+*.sqlite3
+db.sqlite3
+
+# Sqlite database
+db.sqlite3
