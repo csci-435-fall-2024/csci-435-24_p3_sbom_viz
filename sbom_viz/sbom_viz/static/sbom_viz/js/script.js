@@ -69,9 +69,28 @@ class FileInputPage {
     uploadFileText() {
         let fileReader = new FileReader();
         fileReader.onload = () => {
-            console.log(fileReader.result);
+            //console.log(fileReader.result);
+            this.app.page = new FileDisplayPage(this.app, fileReader.result);
+            this.app.render();
         };
         fileReader.readAsText(this.file);
+    }
+}
+
+class FileDisplayPage {
+    // Set up the page
+    constructor(app, text) {
+        this.app = app;
+        this.text = text;
+    }
+
+    // Render the page to display the file
+    render() {
+        this.app.appElement.innerHTML = `
+            <h1>Display File</h1>
+            <p id="text-p"></p>
+        `;
+        document.getElementById("text-p").textContent = this.text;
     }
 }
 
