@@ -19,7 +19,7 @@ To run the Django project locally, navigate to the sbom_viz directory in your te
 
 ```bash
 cd sbom_viz
-```bash
+```
 
 and then run this:
 
