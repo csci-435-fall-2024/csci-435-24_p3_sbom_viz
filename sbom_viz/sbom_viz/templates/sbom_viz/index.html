@@ -7,6 +7,28 @@
 </head>
 <body>
     <div id="app"></div>
-    <script src="../static/sbom_viz/js/script.js" type="module"></script> <!-- type must be module here so script.js can import from other javascript files -->
+    <!--<script src="../static/sbom_viz/js/script.js" type="module"></script> <!-- type must be module here so script.js can import from other javascript files -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h1>Upload File</h1>
+        <!-- Radio Selector for SBOM Standard -->
+        <label for="file-standard-selector">Select SBOM Standard:</label>
+        <div id="file-standard-selector">
+            <!-- SPDX Radio Option -->
+            <label for="file-standard-spdx">SPDX</label>
+            <input type="radio" name="file-standard-selector-option" id="file-standard-spdx" value="spdx" checked />
+            <!-- CycloneDX Radio Option -->
+            <label for="file-standard-cyclone-dx">CycloneDX</label>
+            <input type="radio" name="file-standard-selector-option" id="file-standard-cyclone-dx" value="cyclone-dx" />
+        </div>
+        <div>
+            <!-- SBOM File Select Button -->
+            <label for="file-select-input">Select File:</label>
+            <input type="file" name="file-select-input" id="file-select-input"/>
+        </div>
+        
+            <!-- SBOM Upload File Button -->
+        <button type="submit" id="upload-button">Upload File</button>
+    </form>
 </body>
 </html>
