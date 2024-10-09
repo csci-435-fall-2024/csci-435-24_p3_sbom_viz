@@ -1,0 +1,22 @@
+<form>
+    <h1>Upload File</h1>
+    <!-- Radio Selector for SBOM Standard -->
+    <label for="file-standard-selector">Select SBOM Standard:</label>
+    <div id="file-standard-selector">
+        <!-- SPDX Radio Option -->
+        <label for="file-standard-spdx">SPDX</label>
+        <input type="radio" name="file-standard-selector-option" id="file-standard-spdx" value="spdx" checked />
+        <!-- CycloneDX Radio Option -->
+        <label for="file-standard-cyclone-dx">CycloneDX</label>
+        <input type="radio" name="file-standard-selector-option" id="file-standard-cyclone-dx" value="cyclone-dx" />
+    </div>
+    <div>
+        <!-- SBOM File Select Button -->
+        <label for="file-select-input">Select File:</label>
+        <input type="file" name="file-select-input" id="file-select-input"/>
+    </div>
+    <div>
+        <!-- SBOM Upload File Button -->
+        <button type="button" id="upload-button" disabled>Upload File</button>
+    </div>
+</form>
