@@ -1,6 +1,11 @@
+* {
+    font-family: system-ui;
+}
+
 body {
     display: flex;
     flex-direction: column;
+    justify-content: space-around;
 }
 
 .header {
@@ -16,17 +21,82 @@ body {
     font-weight:800;
 }
 
-#home {
+#home-link {
     margin-right:auto;
 }
 
+/* The links to other pages in the header*/
 a {
     color: inherit;
     text-decoration: inherit;
 }
 
-.content {
+/* "Upload SBOM File */
+#title { 
+    font-size: 32px;
+    font-weight: bolder;
+    color: #151515;
+}
+
+/* The entire middle section */
+form {
     display:flex;
+    margin-top: auto;
     flex-direction: column;
     align-items: center;
+    gap: 25px;
+    padding:100px;
+}
+
+/* The select file area. I put in the gray dotted box
+   since it looked nice, but we don't have drag and drop 
+   functionality yet */
+.file-select {
+    display: flex;
+    outline: dashed 4px rgb(181, 185, 187);
+    outline-offset: 0px;
+    background-color: rgb(236, 234, 234);
+    border-radius: 5px;
+    width: 325px;
+    height: 175px;
+    justify-content: center;
+    align-items: center;
+
+}
+
+/* Remove default file select styling to use the styling 
+   under .file-select label instead */
+   input[type="file"] {
+    display: none;
+}
+
+.file-select label {
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+    background-color:rgb(188, 189, 190);
+    border-radius: 3px;
+}
+
+/* 
+Didn't find a need for styling the filetype selecting
+area, but just in case we want to change it later
+.file-type {
+
+}
+*/
+
+/* Make the "Select SBOM Standard" text bolder */
+label[for="file-standard-selector"] {
+    font-weight: bolder;
+}
+
+#upload-button {
+    background-color: rgb(79, 87, 87);
+    color:whitesmoke;
+    font-weight: bolder;
+    border-radius: 6px;
+    width: 325px;
+    padding: 15px;
 }
