@@ -4,31 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hello World</title>
+    <link rel="stylesheet" type="text/css" href="../../static/sbom_viz/css/styles.css"/>
 </head>
 <body>
     <div id="app"></div>
     <!--<script src="../static/sbom_viz/js/script.js" type="module"></script> <!-- type must be module here so script.js can import from other javascript files -->
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
-        <h1>Upload File</h1>
-        <!-- Radio Selector for SBOM Standard -->
-        <label for="file-standard-selector">Select SBOM Standard:</label>
-        <div id="file-standard-selector">
-            <!-- SPDX Radio Option -->
-            <label for="file-standard-spdx">SPDX</label>
-            <input type="radio" name="file-standard-selector-option" id="file-standard-spdx" value="spdx" checked />
-            <!-- CycloneDX Radio Option -->
-            <label for="file-standard-cyclone-dx">CycloneDX</label>
-            <input type="radio" name="file-standard-selector-option" id="file-standard-cyclone-dx" value="cyclone-dx" />
-        </div>
-        <div>
-            <!-- SBOM File Select Button -->
-            <label for="file-select-input">Select File:</label>
-            <input type="file" name="file-select-input" id="file-select-input"/>
-        </div>
-        
-            <!-- SBOM Upload File Button -->
-        <button type="submit" id="upload-button">Upload File</button>
-    </form>
+    <div class="header">
+        <a href="#" id="home">Home</a>
+        <a href="#" id="diagram" class="right">Diagram</a>
+        <a href="#" id="licenses" class="right">Licenses</a>
+        <a href="#" id="dependencies" class="right">Dependencies</a>
+    </div>
+    <div class="content">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <h1>Upload File</h1>
+            <!-- Radio Selector for SBOM Standard -->
+            <label for="file-standard-selector">Select SBOM Standard:</label>
+            <div id="file-standard-selector">
+                <!-- SPDX Radio Option -->
+                <label for="file-standard-spdx">SPDX</label>
+                <input type="radio" name="file-standard-selector-option" id="file-standard-spdx" value="spdx" checked />
+                <!-- CycloneDX Radio Option -->
+                <label for="file-standard-cyclone-dx">CycloneDX</label>
+                <input type="radio" name="file-standard-selector-option" id="file-standard-cyclone-dx" value="cyclone-dx" />
+            </div>
+            <div>
+                <!-- SBOM File Select Button -->
+                <label for="file-select-input">Select File:</label>
+                <input type="file" name="file-select-input" id="file-select-input"/>
+            </div>
+            
+                <!-- SBOM Upload File Button -->
+            <button type="submit" id="upload-button">Upload File</button>
+        </form>
+    </div>
 </body>
 </html>
