@@ -6,8 +6,7 @@
     <title>Display File</title>
 </head>
 <body>
-    {% block content %}
-        {{ file_contents|linebreaks }}
-    {% endblock %}
+    <div id="tree-container"></div>
+    <script src="../../static/sbom_viz/js/fileDisplayPage.js" type="module"></script>
 </body>
 </html>
