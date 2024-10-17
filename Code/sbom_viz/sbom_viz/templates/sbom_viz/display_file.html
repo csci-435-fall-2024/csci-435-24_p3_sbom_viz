@@ -146,22 +146,16 @@
               .attr('class', 'node')
               .attr('width', rectWidth)
               .attr('height', rectHeight)
-              .attr('x', 0)
+              .attr('x', (rectWidth/2)*-1)
               .attr('y', (rectHeight/2)*-1)
-              .attr('rx', '5')
+              .attr('rx', '5') // round corners
               .style("fill", function(d) {
                   return d._children ? "lightsteelblue" : "#fff";
               });
         
           // Add labels for the nodes
           nodeEnter.append('text')
-              .attr("dy", ".35em")
-              .attr("x", function(d) {
-                  return d.children || d._children ? -13 : 13;
-              })
-              .attr("text-anchor", function(d) {
-                  return d.children || d._children ? "end" : "start";
-              })
+              .attr("text-anchor", "middle")
               .text(function(d) { return d.data.name; });
         
           // UPDATE
