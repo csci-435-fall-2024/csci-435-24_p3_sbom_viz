@@ -70,18 +70,22 @@
         // appends a 'group' element to 'svg'
         // moves the 'group' element to the top left margin
         var svg = d3.select("body").append("svg")
-            .attr("width", width + margin.right + margin.left)
+        .attr("id", "tree-svg")
+        .attr("width", width + margin.right + margin.left)
             .attr("height", height + margin.top + margin.bottom)
             .append("g")
             .attr("transform", "translate("
                   + margin.left + "," + margin.top + ")");
         
         var i = 0,
-            duration = 750,
+            duration = 750, // in milliseconds
             root;
+
+        let node_width = 200;
+        let node_height = 20;
         
         // declares a tree layout and assigns the size
-        var treemap = d3.tree().size([height, width]);
+        var treemap = d3.tree().nodeSize([node_width,node_height])//size([height, width]);
         
         // Assigns parent, children, height, depth
         // Currently loads JSON data from this link,
@@ -262,6 +266,24 @@
                 d._children = null;
               }
             update(d);
+            resizeCanvas();
+          }
+        }
+
+        function resizeCanvas() {
+          
+          setTimeout(singleResize, duration);
+
+          function singleResize() {
+            console.log("Resize");
+            // Resize the svg to fit all components
+            let svg = document.getElementById("tree-svg");
+            let newDimensions = svg.getBBox();
+            console.log(newDimensions);
+            svg.setAttribute("x", 0);
+            svg.setAttribute("y", 0);
+            svg.setAttribute("width", newDimensions.width);
+            svg.setAttribute("height", newDimensions.height);
           }
         }
         
