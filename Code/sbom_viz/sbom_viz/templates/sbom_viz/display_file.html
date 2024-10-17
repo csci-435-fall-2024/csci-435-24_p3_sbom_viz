@@ -8,7 +8,7 @@
 
 <style>
 
-    .node circle {
+    .node rect {
       fill: #fff;
       stroke: steelblue;
       stroke-width: 3px;
@@ -62,7 +62,7 @@
           };
         
         // Set the dimensions and margins of the diagram
-        var margin = {top: 20, right: 90, bottom: 30, left: 90},
+        var margin = {top: 50, right: 90, bottom: 30, left: 90},
             width = 1000 - margin.left - margin.right,
             height = 1000 - margin.top - margin.bottom;
         
@@ -118,7 +118,7 @@
               links = treeData.descendants().slice(1);
         
           // Normalize for fixed-depth.
-          nodes.forEach(function(d){ d.y = d.depth * 180});
+          nodes.forEach(function(d){ d.y = d.depth * 90});
         
           // ****************** Nodes section ***************************
         
@@ -133,11 +133,17 @@
                 return "translate(" + source.x0 + "," + source.y0 + ")";
             })
             .on('click', click);
+
+          var rectHeight = 60, rectWidth = 120;
         
-          // Add Circle for the nodes
-          nodeEnter.append('circle')
+          // Add rectangle for the nodes
+          nodeEnter.append('rect')
               .attr('class', 'node')
-              .attr('r', 1e-6)
+              .attr('width', rectWidth)
+              .attr('height', rectHeight)
+              .attr('x', 0)
+              .attr('y', (rectHeight/2)*-1)
+              .attr('rx', '5')
               .style("fill", function(d) {
                   return d._children ? "lightsteelblue" : "#fff";
               });
@@ -170,7 +176,7 @@
              });
         
           // Update the node attributes and style
-          nodeUpdate.select('circle.node')
+          nodeUpdate.select('rect.node')
             .attr('r', 10)
             .style("fill", function(d) {
                 return d._children ? "lightsteelblue" : "#fff";
@@ -186,8 +192,8 @@
               })
               .remove();
         
-          // On exit reduce the node circles size to 0
-          nodeExit.select('circle')
+          // On exit reduce the node rectangle size to 0
+          nodeExit.select('rect')
             .attr('r', 1e-6);
         
           // On exit reduce the opacity of text labels
