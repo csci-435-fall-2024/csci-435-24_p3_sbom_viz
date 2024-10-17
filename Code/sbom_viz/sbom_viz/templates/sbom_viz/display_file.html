@@ -82,7 +82,7 @@
             root;
 
         let node_width = 200;
-        let node_height = 20;
+        let node_height = 100;
         
         // declares a tree layout and assigns the size
         var treemap = d3.tree().nodeSize([node_width,node_height])//size([height, width]);
@@ -101,6 +101,7 @@
             root.children.forEach(collapse);
             
             update(root);
+            resizeCanvas();
             
             // Collapse the node and all it's children
             function collapse(d) {
@@ -272,7 +273,10 @@
 
         function resizeCanvas() {
           
-          setTimeout(singleResize, duration);
+          let svg = document.getElementById("tree-svg");
+          let newDimensions = svg.getBBox();
+          let frequentResize = setInterval(singleResize, 10); // Fix canvas size every 10 milliseconds
+          setTimeout(() => {clearInterval(frequentResize)}, duration);
 
           function singleResize() {
             console.log("Resize");
@@ -280,10 +284,10 @@
             let svg = document.getElementById("tree-svg");
             let newDimensions = svg.getBBox();
             console.log(newDimensions);
-            svg.setAttribute("x", 0);
+            svg.setAttribute("x", newDimensions.x);
             svg.setAttribute("y", 0);
-            svg.setAttribute("width", newDimensions.width);
-            svg.setAttribute("height", newDimensions.height);
+            svg.setAttribute("width", newDimensions.width + margin.left + margin.right);
+            svg.setAttribute("height", newDimensions.height + margin.top + margin.bottom);
           }
         }
         
