@@ -101,7 +101,7 @@
             root.children.forEach(collapse);
             
             update(root);
-            resizeCanvas();
+            resizeCanvas(treemap(root), node_width, node_height);
             
             // Collapse the node and all it's children
             function collapse(d) {
@@ -143,8 +143,6 @@
             })
             .on('click', click);
 
-          var rectHeight = 60, rectWidth = 120;
-        
           // Add rectangle for the nodes
           nodeEnter.append('rect')
               .attr('class', 'node')
@@ -266,37 +264,53 @@
                 d._children = null;
               }
             update(d);
-            resizeCanvas();
+            resizeCanvas(treeData, node_width, node_height);
           }
         }
 
-        function resizeCanvas() {
+        // Resize the canvas to fit the tree
+        function resizeCanvas(treeData, nodeWidth, nodeHeight) {
           
+          // Calculate old and new dimensions
           let svg = document.getElementById("tree-svg");
-          let newDimensions = svg.getBBox();
-          let frequentResize = setInterval(singleResize, 10); // Fix canvas size every 10 milliseconds
-          setTimeout(() => {clearInterval(frequentResize)}, duration);
+          let oldDimensions = svg.getBBox(); // old dimensions are the current dimensions of the SVG figure
+          let newCoords = treeCoordinates(treeData, nodeWidth, nodeHeight) // new coordinates are determined from the d3 treeData
+          let newDimensions = { x: newCoords.left, y: newCoords.top, width: newCoords.right - newCoords.left, height: newCoords.bottom - newCoords.top }; // calculate new dimensions from new coordinates
 
-          function singleResize() {
-            console.log("Resize");
-            // Resize the svg to fit all components
+          // Resize width
+          if (newDimensions.width >= oldDimensions.width) {           // If the tree will grow,
+            resizeWidth(newDimensions);                               // immediately make room for the tree so it won't clip as it grows.
+          } else {                                                    // If the tree will collapse,
+            setTimeout(() => {resizeWidth(newDimensions)}, duration); // wait until the tree has finished collapsing before shrinking the canvas to avoid clipping the tree while it is still collapsing.
+          }
+
+          if (newDimensions.height >= oldDimensions.height) {         // If the tree will grow,
+            resizeHeight(newDimensions);                              // immediately make room for the tree so it won't clip as it grows.
+          } else {                                                    // If the tree will collapse,
+            setTimeout(() => {resizeHeight(newDimensions)}, duration);// wait until the tree has finished collapsing before shrinking the canvas to avoid clipping the tree while it is still collapsing.
+          }
+
+          // Function calculating the new width of the tree, accounting for margins.
+          function resizeWidth(newDimensions) {
             let svg = document.getElementById("tree-svg");
-            let newDimensions = svg.getBBox();
-            console.log(newDimensions);
-            svg.setAttribute("x", newDimensions.x);
-            svg.setAttribute("y", 0);
             svg.setAttribute("width", newDimensions.width + margin.left + margin.right);
+          }
+
+          // Function calculating the new height of the tree, accounting for margins.
+          function resizeHeight(newDimensions) {
+            let svg = document.getElementById("tree-svg");
             svg.setAttribute("height", newDimensions.height + margin.top + margin.bottom);
           }
+
         }
 
         // Determine the bounding box of coordinates surrounding the tree as an object: {left, top, right, down}
         // Recursively look through the subtrees and combine the results 
         function treeCoordinates(currentNode, nodeWidth, nodeHeight) { 
-          let result = {left: currentNode.x, top: currentNode.y, right: currentNode.x + nodeWidth, bottom: currentNode.y + nodeHeight};
-          if (currentNode.children) {
-            for (child of currentNode.children) { // For each subtree,
-              // Get the bounding box of the subtree and expand accordingly
+          let result = {left: currentNode.x, top: currentNode.y, right: currentNode.x + nodeWidth, bottom: currentNode.y + nodeHeight}; // Consider the current node's bounding box.
+          if (currentNode.children) { // If the node has any subtrees,
+            for (child of currentNode.children) { // Then for each subtree,
+              // Get the bounding box of the subtree and expand the bounding box of the current tree (with currentNode as the root) accordingly.
               let subTreeCoords = treeCoordinates(child, nodeWidth, nodeHeight);
               if (subTreeCoords.left < result.left) { result.left = subTreeCoords.left; }
               if (subTreeCoords.right > result.right) { result.right = subTreeCoords.right; }
