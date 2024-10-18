@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sidebar with Cards</title>
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+        .main-content {
+            width: 75%;
+            padding: 20px;
+        }
+        .sidebar {
+            width: 25%;
+            background-color: #f0f0f0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        button {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .clear-all-btn {
+            margin-bottom: 20px;
+            padding: 5px 10px;
+            background-color: blue;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .clear-all-btn:hover {
+            background-color: darkblue;
+        }
+    </style>
+</head>
+<body>
+    <div class="main-content">
+        <h1>Main Content</h1>
+        <button onclick="addCard(this, 1)">Node 1</button>
+        <button onclick="addCard(this, 2)">Node 2</button>
+        <button onclick="addCard(this, 3)">Node 3</button>
+        <button onclick="addCard(this, 4)">Node 4</button>
+    </div>
+    <div class="sidebar" id="sidebar">
+        <h2>Sidebar</h2>
+        <button class="clear-all-btn" onclick="clearAllCards()">Clear All</button>
+        <!-- Cards will be added here -->
+    </div>
+
+    <script>
+        const cardStates = {1: false, 2: false, 3: false, 4: false};
+
+        function addCard(button, cardNumber) {
+            const sidebar = document.getElementById('sidebar');
+            let card = document.getElementById(`card-${cardNumber}`);
+
+            if (card) {
+                // Card exists, toggle its visibility
+                if (cardStates[cardNumber]) {
+                    sidebar.removeChild(card);
+                    cardStates[cardNumber] = false;
+                } else {
+                    sidebar.appendChild(card);
+                    cardStates[cardNumber] = true;
+                }
+            } else {
+                // Create new card
+                card = document.createElement('div');
+                card.className = 'card';
+                card.id = `card-${cardNumber}`;
+                card.innerHTML = `<h3>${button.textContent}</h3><p>This is the content for "${button.textContent}".</p>`;
+                sidebar.appendChild(card);
+                cardStates[cardNumber] = true;
+            }
+        }
+
+        function clearAllCards() {
+            const sidebar = document.getElementById('sidebar');
+            const cards = sidebar.querySelectorAll('.card');
+            cards.forEach(card => sidebar.removeChild(card));
+            
+            // Reset all card states
+            for (let key in cardStates) {
+                cardStates[key] = false;
+            }
+        }
+    </script>
+</body>
+</html>
