@@ -117,6 +117,10 @@
         
           // Assigns the x and y position for the nodes
           var treeData = treemap(root);
+
+          var rectHeight = 60, rectWidth = 120;
+
+          const treeBbox = treeCoordinates(treeData, rectWidth, rectHeight);
         
           // Compute the new tree layout.
           var nodes = treeData.descendants(),
@@ -171,7 +175,7 @@
           nodeUpdate.transition()
             .duration(duration)
             .attr("transform", function(d) { 
-                return "translate(" + d.x + "," + d.y + ")";
+                return "translate(" + (d.x-treeBbox.left) + "," + d.y + ")";
              });
         
           // Update the node attributes and style
@@ -187,7 +191,7 @@
           var nodeExit = node.exit().transition()
               .duration(duration)
               .attr("transform", function(d) {
-                  return "translate(" + source.x + "," + source.y + ")";
+                  return "translate(" + (source.x-treeBbox.left) + "," + source.y + ")";
               })
               .remove();
         
@@ -209,7 +213,7 @@
           var linkEnter = link.enter().insert('path', "g")
               .attr("class", "link")
               .attr('d', function(d){
-                var o = {x: source.x0, y: source.y0}
+                var o = {x: source.x0+treeBbox.left, y: source.y0}
                 return diagonal(o, o)
               });
         
@@ -237,20 +241,21 @@
         
           // Store the old positions for transition.
           nodes.forEach(function(d){
-            d.x0 = d.x;
+            d.x0 = d.x - treeBbox.left;
             d.y0 = d.y;
           });
         
           // Creates a curved (diagonal) path from parent to the child nodes
+          // Creates a curved (diagonal) path from parent to the child nodes
           function diagonal(s, d) {
         
-            const path = `M ${s.x} ${s.y}
-                          C ${(s.x + d.x) / 2} ${s.y},
-                            ${(s.x + d.x) / 2} ${d.y},
-                            ${d.x} ${d.y}`
+            const path = `M ${s.x - treeBbox.left} ${s.y}
+                          C ${(s.x + d.x) / 2 - treeBbox.left} ${s.y},
+                            ${(s.x + d.x) / 2 - treeBbox.left} ${d.y},
+                            ${d.x - treeBbox.left} ${d.y}`
             return path
           }
-        
+    
           // Toggle children on click.
           function click(event, d) {
             if (d.children) {
@@ -284,7 +289,24 @@
             svg.setAttribute("height", newDimensions.height + margin.top + margin.bottom);
           }
         }
-        
+
+        // Determine the bounding box of coordinates surrounding the tree as an object: {left, top, right, down}
+        // Recursively look through the subtrees and combine the results 
+        function treeCoordinates(currentNode, nodeWidth, nodeHeight) { 
+          let result = {left: currentNode.x, top: currentNode.y, right: currentNode.x + nodeWidth, bottom: currentNode.y + nodeHeight};
+          if (currentNode.children) {
+            for (child of currentNode.children) { // For each subtree,
+              // Get the bounding box of the subtree and expand accordingly
+              let subTreeCoords = treeCoordinates(child, nodeWidth, nodeHeight);
+              if (subTreeCoords.left < result.left) { result.left = subTreeCoords.left; }
+              if (subTreeCoords.right > result.right) { result.right = subTreeCoords.right; }
+              if (subTreeCoords.top < result.top) { result.top = subTreeCoords.top; }
+              if (subTreeCoords.bottom > result.bottom) { result.bottom = subTreeCoords.bottom; }
+            }
+          }
+          return result;
+        }
+
         </script>
 
 </body>
