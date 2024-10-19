@@ -142,21 +142,28 @@ new FileDisplayPage()
 
       // Create a button that will show more 
       // information about this node in
-      // the sidebar.
+      // the sidebar. TODO - styling still isn't very good,
+      // I am not sure how to center the text in the button
+      // !!! more styling is in styles.css !!!
       // ** Change x,y to where desired **
       // ** Pass d.data.name on click to wherever necessary
-      var buttonWidth = 50, buttonHeight = 20;
+      var buttonWidth = 16, buttonHeight = 16;
       nodeEnter.append('foreignObject')
           .attr("height", buttonHeight)
           .attr("width", buttonWidth)
           .attr("x", (rectWidth-buttonWidth)/2)
-          .attr("y", (rectHeight-buttonWidth/2)*-1)
-          .append("xhtml:button")
-          .text("INFO")
+          .attr("y", (rectHeight-30))
+          .append("xhtml:text")
+          .text("+")
+          .style('color', 'steelblue')
+          .style('font', '16px sans-serif')
+          .style('font-weight', 'bolder')
           .on('click', function(e, d){
             e.stopPropagation();
-            alert(d.data.name);
-          });
+            // ternary op to switch between '+' and '-'
+            d3.select(this).text(d3.select(this).text() == '+' ? '-' : '+');
+            console.log(d.data.name);
+            })
     
       // UPDATE
       // Extra styling is from:
