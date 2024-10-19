@@ -123,7 +123,7 @@ new FileDisplayPage()
         })
         .on('click', click);
 
-      // Add rectangle for the nodes
+      // Add rectangle container for each node
       nodeEnter.append('rect')
           .attr('class', 'node')
           .attr('width', rectWidth)
@@ -139,6 +139,24 @@ new FileDisplayPage()
       nodeEnter.append('text')
           .attr("text-anchor", "middle")
           .text(function(d) { return d.data.name; });
+
+      // Create a button that will show more 
+      // information about this node in
+      // the sidebar.
+      // ** Change x,y to where desired **
+      // ** Pass d.data.name on click to wherever necessary
+      var buttonWidth = 50, buttonHeight = 20;
+      nodeEnter.append('foreignObject')
+          .attr("height", buttonHeight)
+          .attr("width", buttonWidth)
+          .attr("x", (rectWidth-buttonWidth)/2)
+          .attr("y", (rectHeight-buttonWidth/2)*-1)
+          .append("xhtml:button")
+          .text("INFO")
+          .on('click', function(e, d){
+            e.stopPropagation();
+            alert(d.data.name);
+          });
     
       // UPDATE
       // Extra styling is from:
