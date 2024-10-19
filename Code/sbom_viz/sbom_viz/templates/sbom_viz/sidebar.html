@@ -27,10 +27,21 @@
             border-radius: 5px;
             padding: 10px;
             margin-bottom: 10px;
+            cursor: pointer;
         }
-        button {
+        .card:hover {
+            border: 1px solid blue;
+        }
+        .node-btn {
             display: block;
             margin-bottom: 10px;
+            background-color: greenyellow;
+            border: 1px solid green;
+            width: 100px;
+            height: 75px;
+        }
+        .node-btn:hover {
+            background-color: green;
         }
         .clear-all-btn {
             margin-bottom: 20px;
@@ -50,10 +61,10 @@
 <body>
     <div class="main-content">
         <h1>Main Content</h1>
-        <button onclick="addCard(this, 1)">Node 1</button>
-        <button onclick="addCard(this, 2)">Node 2</button>
-        <button onclick="addCard(this, 3)">Node 3</button>
-        <button onclick="addCard(this, 4)">Node 4</button>
+        <button class="node-btn" onclick="addCard(this, 1)">Node 1</button>
+        <button class="node-btn" onclick="addCard(this, 2)">Node 2</button>
+        <button class="node-btn" onclick="addCard(this, 3)">Node 3</button>
+        <button class="node-btn" onclick="addCard(this, 4)">Node 4</button>
     </div>
     <div class="sidebar" id="sidebar">
         <h2>Sidebar</h2>
@@ -69,20 +80,25 @@
             let card = document.getElementById(`card-${cardNumber}`);
 
             if (card) {
-                // Card exists, toggle its visibility
-                if (cardStates[cardNumber]) {
-                    sidebar.removeChild(card);
-                    cardStates[cardNumber] = false;
-                } else {
-                    sidebar.appendChild(card);
-                    cardStates[cardNumber] = true;
-                }
+                toggleCard(card, cardNumber);
             } else {
                 // Create new card
                 card = document.createElement('div');
                 card.className = 'card';
                 card.id = `card-${cardNumber}`;
                 card.innerHTML = `<h3>${button.textContent}</h3><p>This is the content for "${button.textContent}".</p>`;
+                card.onclick = function() { toggleCard(card, cardNumber); };
+                sidebar.appendChild(card);
+                cardStates[cardNumber] = true;
+            }
+        }
+
+        function toggleCard(card, cardNumber) {
+            const sidebar = document.getElementById('sidebar');
+            if (cardStates[cardNumber]) {
+                sidebar.removeChild(card);
+                cardStates[cardNumber] = false;
+            } else {
                 sidebar.appendChild(card);
                 cardStates[cardNumber] = true;
             }
