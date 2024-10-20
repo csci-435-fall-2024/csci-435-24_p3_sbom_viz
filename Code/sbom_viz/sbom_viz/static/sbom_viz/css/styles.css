@@ -1,27 +1,29 @@
-.node rect {
+rect#node-container.node { /* Large rect node container */
     fill: #fff;
     stroke: steelblue;
     stroke-width: 3px;
   }
   
-.node text {
+.node text#node-label { /* Label of node in center of rect */
   font: 12px sans-serif;
 }
 
-.link {
+.link { /* Path between nodes */
   fill: none;
   stroke: #ccc;
   stroke-width: 2px;
 }
 
-/*
- * Styles the '+' / '-' button on each individual node
- * Subject to change as needed in order to 
- * center the text
- */
-foreignObject {
-  background-color: lightgray;
+.show-more { /* Both the show-more rect and text */
+  cursor: pointer;
+}
+
+rect.show-more { /* Represents the box around the '+' or '-' */
+  fill: lightgray;
   border: 2px solid steelblue;
   border-radius: 2px;
-  cursor: pointer;
+}
+
+text.show-more{ /* The '+' or '-' text */
+  dominant-baseline: middle; /* Helps to center text in rect */
 }

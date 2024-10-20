@@ -126,6 +126,7 @@ new FileDisplayPage()
       // Add rectangle container for each node
       nodeEnter.append('rect')
           .attr('class', 'node')
+          .attr('id', 'node-container')
           .attr('width', rectWidth)
           .attr('height', rectHeight)
           .attr('x', (rectWidth/2)*-1)
@@ -137,31 +138,55 @@ new FileDisplayPage()
     
       // Add labels for the nodes
       nodeEnter.append('text')
+          .attr('id', 'node-label')
           .attr("text-anchor", "middle")
           .text(function(d) { return d.data.name; });
 
-      // Create a button that will show more 
-      // information about this node in
-      // the sidebar. TODO - styling still isn't very good,
-      // I am not sure how to center the text in the button
+      // Append a button that will show more 
+      // information about this node in the sidebar. 
       // !!! more styling is in styles.css !!!
-      // ** Change x,y to where desired **
-      // ** Pass d.data.name on click to wherever necessary
-      var buttonWidth = 16, buttonHeight = 16;
-      nodeEnter.append('foreignObject')
+      // ** Pass d.data.name on click to wherever necessary (sidebar)
+      // x, y are arbitrary, for lining up in corner
+      var buttonWidth = 16, buttonHeight = 16, 
+        showmoreX = (rectWidth/2)-buttonWidth-1, 
+        showmoreY = rectHeight-47;
+      nodeEnter.append('rect')
+          .attr('class','show-more')
+          .attr('id', 'more-info')
           .attr("height", buttonHeight)
           .attr("width", buttonWidth)
-          .attr("x", (rectWidth-buttonWidth)/2.7)
-          .attr("y", (rectHeight-30))
+          .attr("x", showmoreX) 
+          .attr("y", showmoreY)
+          .attr('rx', '5');
+
+      // The '+' or '-' text in the bottom corner of node
+      // x = (x of the rect that the text is inside of) + 1/2 the width of the rect
+      // y = same but with height
+      nodeEnter.append('text')
+          .attr('class','show-more')
+          .attr("x", showmoreX+(buttonWidth/2))
+          .attr("y", showmoreY+(buttonHeight/2))
+          .text('+') 
+          .attr('text-anchor', 'middle');
+
+      // The '.show-more' class covers the '+'/'-' text and the 
+      // surrounding rect. 
+      // If the bounding rect is clicked, then go to the nextSibling
+      // (the '+'/'-' text) and switch it. Otherwise (the text was clicked),
+      // switch the text directly.
+      // * stopPropagation() ensures that the click does not go through to the larger node and expand the tree.
+      d3.selectAll('.show-more')
           .on('click', function(e, d){
             e.stopPropagation();
-            d3.select(this).text(d3.select(this).text() == '+' ? '-' : '+');
+            if(this.tagName == 'text'){
+              d3.select(this).text(d3.select(this).text() == '+' ? '-' : '+');
+            }
+            else {
+              d3.select(this.nextSibling).text(d3.select(this.nextSibling).text() == '+' ? '-' : '+');
+            }
             console.log(d.data.name);
-          })
-          .text('+')
-          .style('color', 'steelblue')
-          .style('font', '12px sans-serif')
-    
+          });
+
       // UPDATE
       // Extra styling is from:
       // https://observablehq.com/@bumbeishvili/vertical-collapsible-tree
