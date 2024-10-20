@@ -151,19 +151,16 @@ new FileDisplayPage()
       nodeEnter.append('foreignObject')
           .attr("height", buttonHeight)
           .attr("width", buttonWidth)
-          .attr("x", (rectWidth-buttonWidth)/2)
+          .attr("x", (rectWidth-buttonWidth)/2.7)
           .attr("y", (rectHeight-30))
-          .append("xhtml:text")
-          .text("+")
-          .style('color', 'steelblue')
-          .style('font', '16px sans-serif')
-          .style('font-weight', 'bolder')
           .on('click', function(e, d){
             e.stopPropagation();
-            // ternary op to switch between '+' and '-'
             d3.select(this).text(d3.select(this).text() == '+' ? '-' : '+');
             console.log(d.data.name);
-            })
+          })
+          .text('+')
+          .style('color', 'steelblue')
+          .style('font', '12px sans-serif')
     
       // UPDATE
       // Extra styling is from:
