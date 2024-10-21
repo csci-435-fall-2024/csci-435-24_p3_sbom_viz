@@ -229,6 +229,15 @@ new FileDisplayPage()
             else {
               d3.select(this.nextSibling).text(d3.select(this.nextSibling).text() == '+' ? '-' : '+');
             }
+            if (d.children) {
+              d._children = d.children;
+              d.children = null;
+            } else {
+              d.children = d._children;
+              d._children = null;
+            }
+            update(d);
+            resizeCanvas(treeData, node_width, node_height);
             console.log(d.data.name);
           });
 
@@ -328,16 +337,7 @@ new FileDisplayPage()
 
       // Toggle children on click.
       function click(event, d) {
-        if (d.children) {
-            d._children = d.children;
-            d.children = null;
-          } else {
-            d.children = d._children;
-            d._children = null;
-          }
         addCard(d.data.name);
-        update(d);
-        resizeCanvas(treeData, node_width, node_height);
       }
     }
 
