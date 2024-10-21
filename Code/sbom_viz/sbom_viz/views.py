@@ -10,3 +10,7 @@ def home(request):
         return render(request, 'sbom_viz/display_file.html', {"file_contents": file_contents})
     else:
         return render(request, 'sbom_viz/index.html')
+
+# Used by D3 to gather data for tree
+def json(request):
+    return render(request, 'sbom_viz/data.json')

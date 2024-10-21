@@ -3,11 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./../../static/sbom_viz/css/styles.css">
     <title>Display File</title>
+    <style>
+        body {
+            display: flex;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+        .main-content {
+            width: 75%;
+            padding: 20px;
+        }
+        .sidebar {
+            width: 25%;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100vh;
+            background-color: #f0f0f0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+        }
+        .card:hover {
+            border: 1px solid blue;
+        }
+        .node-btn {
+            display: block;
+            margin-bottom: 10px;
+            background-color: greenyellow;
+            border: 1px solid green;
+            width: 100px;
+            height: 75px;
+        }
+        .node-btn:hover {
+            background-color: green;
+        }
+        .clear-all-btn {
+            margin-bottom: 20px;
+            padding: 5px 10px;
+            background-color: blue;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .clear-all-btn:hover {
+            background-color: darkblue;
+        }
+    </style>
 </head>
 <body>
-    {% block content %}
-        {{ file_contents|linebreaks }}
-    {% endblock %}
+    <div class="sidebar" id="sidebar">
+        <h2>Sidebar</h2>
+        <button class="clear-all-btn" onclick="clearAllCards()">Clear All</button>
+        <!-- Cards will be added here -->
+    </div>
+    <!-- <script src="../../static/sbom_viz/js/fileDisplayPage.js" type="module"></script> -->
+    <script>
+        // Wait for the module to load before creating the FileDisplayPage instance
+        import("../../static/sbom_viz/js/fileDisplayPage.js").then(module => {
+            new module.FileDisplayPage();
+        });
+    </script>
 </body>
 </html>
