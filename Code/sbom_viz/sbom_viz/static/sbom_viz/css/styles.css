@@ -128,3 +128,38 @@ rect.show-more { /* Represents the box around the '+' or '-' */
 text.show-more{ /* The '+' or '-' text */
   dominant-baseline: middle; /* Helps to center text in rect */
 }
+
+/* Sidebar stuff */
+.sidebar {
+  width: 25%;
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  background-color: #f0f0f0;
+  padding: 20px;
+  overflow-y: auto;
+}
+.card {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.card:hover {
+  border: 1px solid blue;
+}
+.clear-all-btn {
+  margin-bottom: 20px;
+  padding: 5px 10px;
+  background-color: blue;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.clear-all-btn:hover {
+  background-color: darkblue;
+}
