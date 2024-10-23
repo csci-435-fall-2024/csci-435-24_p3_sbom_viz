@@ -114,7 +114,15 @@ def home(request):
             file_contents += line.decode()+'\n'
         return render(request, 'sbom_viz/display_file.html', {"file_contents": file_contents})
     else:
-        return render(request, 'sbom_viz/index.html')
+        return render(request, 'sbom_viz/index.html')    
+'''
+Deprecated - previously, fileInputPage.js would submit an HttpResponse to 127... /data.json to retrieve tree.
+Now, it queries 127... /tree/ and receives a JsonResponse.
+
+# Used by D3 to gather data for tree
+def json(request):
+    return render(request, 'sbom_viz/data.json')
+'''
     
 def get_tree(request):
     if request.method == "GET":
