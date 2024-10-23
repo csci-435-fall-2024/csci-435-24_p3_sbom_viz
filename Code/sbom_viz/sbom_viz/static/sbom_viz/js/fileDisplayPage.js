@@ -13,6 +13,8 @@ export class FileDisplayPage {
 
 new FileDisplayPage()
 
+let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => response.json())
+
       /*
        * Credit: 
        * Collapsible tree diagram in v7
