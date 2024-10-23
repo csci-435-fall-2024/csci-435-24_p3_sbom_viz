@@ -21,9 +21,9 @@ from sbom_viz import views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", views.home, name = "home"),
-    path("tree/", views.get_tree, name = "get-tree")
-  
+    path("tree/", views.get_tree, name = "get-tree"),
+    path("id-data-map/", views.get_data_map, name = "get-map"),
+
   # Previously used to get tree via HttpResponse to 127... /data.json
   # re_path(r"[a-zA-Z]*.json$", views.json, name = "json") # allow D3 to query for data as a JSON file
-
 ]

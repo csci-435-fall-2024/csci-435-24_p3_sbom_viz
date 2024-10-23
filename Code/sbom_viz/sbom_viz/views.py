@@ -1,5 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
+from lib4sbom.parser import SBOMParser
+from sbom_viz.scripts import build_tree
+import json
 
 mock_tree = {
     "name" : "SBOM Root", # artificial root node
@@ -106,9 +109,15 @@ mock_tree = {
     ]
 }
 
+sbom_parser = SBOMParser()
+data_map = {"SPDXRef-DOCUMENT": {"name": "SPDXRef-DOCUMENT"}}
+sbom_tree = {}
+
 def home(request):
     if request.method == "POST" and len(request.FILES) == 1:
         file = request.FILES["file-select-input"]
+        print(type(file))
+        sbom_parser.parse_file(file.temporary_file_path())
         file_contents = ""
         for line in file:
             file_contents += line.decode()+'\n'
@@ -125,5 +134,21 @@ def json(request):
 '''
     
 def get_tree(request):
+    should_return_mock_tree = False
     if request.method == "GET":
-        return JsonResponse(mock_tree)
+        if (should_return_mock_tree):
+            return JsonResponse(mock_tree)
+        else:
+            return JsonResponse(data=build_tree.get_relationship_tree(sbom_parser, data_map), json_dumps_params={"indent": 4}) 
+
+
+    
+# This method is called when requesting the URL: localhost:8000/id-data-map
+# This url should only be called after the user submits the file upload form. Otherwise the returned data is nearly empty    
+def get_data_map(request):
+    if request.method == "GET":
+        for i in sbom_parser.get_files():
+            data_map[i["id"]] = i
+        for i in sbom_parser.get_packages():
+            data_map[i["id"]] = i
+        return JsonResponse(data=data_map, json_dumps_params={"indent": 4})
