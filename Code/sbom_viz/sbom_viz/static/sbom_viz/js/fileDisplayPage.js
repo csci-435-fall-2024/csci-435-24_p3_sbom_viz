@@ -71,7 +71,7 @@ new FileDisplayPage()
     // Currently loads JSON data from this link,
     // The commented out line below would allow it to use the
     // Raw JSON defined in this file
-    d3.json("http://127.0.0.1:8000/data.json").then(function(data){
+    d3.json("http://127.0.0.1:8000/tree").then(function(data){
         root = d3.hierarchy(data, function(d){return d.children;});
         //root = d3.hierarchy(treeData, function(d) { return d.children; });
         root.x0 = height / 2;
