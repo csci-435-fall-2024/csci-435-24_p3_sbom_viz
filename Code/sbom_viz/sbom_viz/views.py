@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from lib4sbom.parser import SBOMParser
-from Code.sbom_viz.sbom_viz.scripts import build_tree
+from sbom_viz.scripts import build_tree
 import json
 
 mock_tree = {
@@ -124,14 +124,15 @@ def home(request):
         return render(request, 'sbom_viz/display_file.html', {"file_contents": file_contents})
     else:
         return render(request, 'sbom_viz/index.html')
-    
+
+# This method is called after getting the data map  
 def get_tree(request):
     should_return_mock_tree = False
     if request.method == "GET":
         if (should_return_mock_tree):
             return JsonResponse(mock_tree)
         else:
-            return JsonResponse(data=build_tree.get_relationship_tree(sbom_parser), json_dumps_params={"indent": 4}) 
+            return JsonResponse(data=build_tree.get_relationship_tree(sbom_parser, data_map), json_dumps_params={"indent": 4}) 
 
 
     
