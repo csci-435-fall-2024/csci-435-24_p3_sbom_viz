@@ -106,7 +106,7 @@ label[for="file-standard-selector"] {
   }
   
 .node text#node-label { /* Label of node in center of rect */
-  font: 12px sans-serif;
+  font-size: 12px;
 }
 
 .link { /* Path between nodes */

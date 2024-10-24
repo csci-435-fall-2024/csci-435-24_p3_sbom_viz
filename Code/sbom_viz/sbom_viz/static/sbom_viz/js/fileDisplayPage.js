@@ -184,10 +184,27 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           });
     
       // Add labels for the nodes
+      // Truncate label length and add "..."
+      // if the label is larger than the node
+      var maxLabelLength = 13;
       nodeEnter.append('text')
           .attr('id', 'node-label')
           .attr("text-anchor", "middle")
-          .text(function(d) { return d.data.name; });
+          .attr("cursor", "pointer")
+          .text(function(d) { 
+            if(d.data.name.length > maxLabelLength){
+              return d.data.name.substring(0,maxLabelLength)+"...";
+            }
+            else return d.data.name; 
+            });
+
+      // When the user hovers over a node, 
+      // show a tooltip with the full 
+      // (no ellipses) label
+      nodeEnter.append("svg:title")
+          .text(function(d){
+            return d.data.name;
+          });
 
       // Append a button that will show more 
       // information about this node in the sidebar. 
