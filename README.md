@@ -7,6 +7,10 @@ python -m venv sbom_env
 
 sbom_env\Scripts\activate
 ```
+After creating the virtual environment, you will need to install a few dependencies. Call:
+```bash
+pip install -r ./code/requirements.txt
+```
 
 This will give you a virtual environment where dependencies can be tracked more easily.
 If you are getting an error trying to activate your venv you might need to run this first:
