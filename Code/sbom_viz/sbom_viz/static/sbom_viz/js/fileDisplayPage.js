@@ -78,7 +78,7 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
         //root = d3.hierarchy(treeData, function(d) { return d.children; });
         root.x0 = height / 2;
         root.y0 = 0;
-        
+
         // Collapse after the second level
         root.children.forEach(collapse);
         
@@ -163,8 +163,13 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           .data(nodes, function(d) {return d.id || (d.id = ++i); });
     
       // Enter any new modes at the parent's previous position.
+      // If this node has children, it has class "node parent"
+      // Otherwise, it has class "node leaf"
       var nodeEnter = node.enter().append('g')
-          .attr('class', 'node')
+          .attr('class', function(d){
+            if (d._children || d.children) return "node parent";
+            else return "node leaf";
+          })
           .attr("transform", function(d) {
             return "translate(" + source.x0 + "," + source.y0 + ")";
         })
@@ -205,33 +210,36 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           .text(function(d){
             return d.data.name;
           });
+     
+        // Append a button that will show more 
+        // information about this node in the sidebar. 
+        // !!! more styling is in styles.css !!!
+        // ** Pass d.data.name on click to wherever necessary (sidebar)
+        // x, y are arbitrary, for lining up in corner
+        var buttonWidth = 16, buttonHeight = 16, 
+          showmoreX = (rectWidth/2)-buttonWidth-1, 
+          showmoreY = rectHeight-47;
+        nodeEnter.append('rect')
+            .attr('class','show-more')
+            .attr('id', 'more-info')
+            .attr("height", buttonHeight)
+            .attr("width", buttonWidth)
+            .attr("x", showmoreX) 
+            .attr("y", showmoreY)
+            .attr('rx', '5');
 
-      // Append a button that will show more 
-      // information about this node in the sidebar. 
-      // !!! more styling is in styles.css !!!
-      // ** Pass d.data.name on click to wherever necessary (sidebar)
-      // x, y are arbitrary, for lining up in corner
-      var buttonWidth = 16, buttonHeight = 16, 
-        showmoreX = (rectWidth/2)-buttonWidth-1, 
-        showmoreY = rectHeight-47;
-      nodeEnter.append('rect')
-          .attr('class','show-more')
-          .attr('id', 'more-info')
-          .attr("height", buttonHeight)
-          .attr("width", buttonWidth)
-          .attr("x", showmoreX) 
-          .attr("y", showmoreY)
-          .attr('rx', '5');
+        // The '+' or '-' text in the bottom corner of node
+        // x = (x of the rect that the text is inside of) + 1/2 the width of the rect
+        // y = same but with height
+        nodeEnter.append('text')
+            .attr('class','show-more')
+            .attr("x", showmoreX+(buttonWidth/2))
+            .attr("y", showmoreY+(buttonHeight/2))
+            .text('+') 
+            .attr('text-anchor', 'middle');
 
-      // The '+' or '-' text in the bottom corner of node
-      // x = (x of the rect that the text is inside of) + 1/2 the width of the rect
-      // y = same but with height
-      nodeEnter.append('text')
-          .attr('class','show-more')
-          .attr("x", showmoreX+(buttonWidth/2))
-          .attr("y", showmoreY+(buttonHeight/2))
-          .text('+') 
-          .attr('text-anchor', 'middle');
+      // Select all leaf nodes and remove their 'show-more' button
+      d3.selectAll(".node.leaf").selectAll(".show-more").remove();
 
       // The '.show-more' class covers the '+'/'-' text and the 
       // surrounding rect. 
@@ -257,7 +265,6 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
             }
             update(d);
             resizeCanvas(treeData, node_width, node_height);
-            console.log(d.data.name);
           });
 
       // UPDATE
@@ -413,7 +420,6 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
       return result;
     }
 
-console.log("Hello")
 
 // Expose clearAllCards to the global scope
 window.clearAllCards = clearAllCards;
