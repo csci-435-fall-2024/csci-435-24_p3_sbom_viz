@@ -111,6 +111,21 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           sidebar.appendChild(card);
           cardStates[cardName] = true;
       }
+      
+        // Select all node labels. Filter to 
+        // the node label that has the same label as this card.
+        // Select the previousSibling of this label (the rect presents as the node).
+        // Change the border if this node is present in the sidebar.
+        var styledRect = d3.selectAll('g.node > #node-label') 
+          .filter(function() { 
+            return d3.select(this).text() == cardName; 
+          })
+          .node()
+          .previousSibling
+        
+        styledRect.style.stroke = 
+          (cardStates[cardName]) ? "blue" : "steelblue";
+
     }
 
     function toggleCard(card, cardName) {
@@ -274,7 +289,7 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
         .attr("fill", "#fff")
         .attr("stroke", "steelblue")
         .attr("stroke-width", "3px;")
-        .style('font', '12px sans-serif');
+        .style('font', '12px');
     
       // Transition to the proper position for the node
       nodeUpdate.transition()
@@ -361,7 +376,8 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
         return path
       }
 
-      // Toggle children on click.
+      // Add or remove card in sidebar when 
+      // corresponding node is clicked
       function click(event, d) {
         addCard(d.data.name);
       }

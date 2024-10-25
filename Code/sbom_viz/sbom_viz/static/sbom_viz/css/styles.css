@@ -99,11 +99,14 @@ label[for="file-standard-selector"] {
     border-radius: 6px;
     width: 325px;
     padding: 15px;
-}rect#node-container.node { /* Large rect node container */
+
+}
+
+rect#node-container.node { /* Large rect node container */
     fill: #fff;
     stroke: steelblue;
     stroke-width: 3px;
-  }
+}
   
 .node text#node-label { /* Label of node in center of rect */
   font-size: 12px;
