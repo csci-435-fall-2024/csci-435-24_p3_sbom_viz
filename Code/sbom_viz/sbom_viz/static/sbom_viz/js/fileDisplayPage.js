@@ -113,19 +113,21 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
       }
       
         // Select all node labels. Filter to 
-        // the node label that has the same label as this card.
-        // Select the previousSibling of this label (the rect presents as the node).
-        // Change the border if this node is present in the sidebar.
-        var styledRect = d3.selectAll('g.node > #node-label') 
+        // the title that has the same label as this card. (*Not using label because it may be truncated*)
+        // Select the previous previous sibling of this label (the rect that presents as the node).
+        // Change the border of this rect, if this node is present in the sidebar.
+        d3.selectAll('g.node > title') 
           .filter(function() { 
             return d3.select(this).text() == cardName; 
           })
-          .node()
-          .previousSibling
-        
-        styledRect.style.stroke = 
-          (cardStates[cardName]) ? "blue" : "steelblue";
-
+          .each(function(d){
+            d3.select(this)            // -> title element
+            .node()                    // allow for previousElementSibling call
+            .previousElementSibling    // -> #node-label
+            .previousElementSibling    // -> #node-container
+            .style.stroke = 
+            (cardStates[cardName]) ? "blue" : "steelblue"
+          });
     }
 
     function toggleCard(card, cardName) {
