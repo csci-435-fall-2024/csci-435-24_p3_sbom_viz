@@ -54,6 +54,7 @@ The tree visualization page displays your inputted SBOM file in the form of a tr
   - Clicking on a node -> display node in the sidebar
   - Clicking **+** on a node -> expand the children of this node
   - Clicking **-** on a node -> contract the children of this node
+    
 The **Sidebar** on the right of the screen has the following features:
   - When a node is added to the sidebar, the corresponding node is highlighted with a blue border.
   - The sidebar displays more detailed information about a specific node.
