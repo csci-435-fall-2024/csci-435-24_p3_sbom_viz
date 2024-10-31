@@ -188,3 +188,7 @@ text.show-more{ /* The '+' or '-' text */
   margin: auto;
   text-align: center;
 }
+
+.bold {
+  font-weight: bold;
+}
