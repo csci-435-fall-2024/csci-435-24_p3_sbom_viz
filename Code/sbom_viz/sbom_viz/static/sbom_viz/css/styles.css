@@ -180,3 +180,11 @@ text.show-more{ /* The '+' or '-' text */
   position: relative;
   top: 75px;
 }
+
+.centered-title {
+  font-size: 32px;
+  font-weight: bolder;
+  color: #151515;
+  margin: auto;
+  text-align: center;
+}
