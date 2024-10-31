@@ -174,3 +174,9 @@ text.show-more{ /* The '+' or '-' text */
   position: relative;
   top: 60px;
 }
+
+/* Represents the page content with empty space above it to lower the body information so it is not below the navigation bar. */
+.body-space {
+  position: relative;
+  top: 75px;
+}

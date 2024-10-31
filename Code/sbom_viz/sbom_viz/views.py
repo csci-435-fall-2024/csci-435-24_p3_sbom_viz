@@ -184,3 +184,6 @@ def go_to_page_diagram(request):
             file_contents += line.decode()+'\n'
     # If the user does not upload an SBOM on the home page, but they have previously uploaded an SBOM, go straight to the diagram page and display the old SBOM.
     return render(request, 'sbom_viz/display_file.html')
+
+def go_to_page_licenses(request):
+    return render(request, 'sbom_viz/licenses.html')
