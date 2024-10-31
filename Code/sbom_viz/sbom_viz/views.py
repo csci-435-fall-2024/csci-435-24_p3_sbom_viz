@@ -185,5 +185,14 @@ def go_to_page_diagram(request):
     # If the user does not upload an SBOM on the home page, but they have previously uploaded an SBOM, go straight to the diagram page and display the old SBOM.
     return render(request, 'sbom_viz/display_file.html')
 
+# Endpoint that takes a user to the licenses page when the link on the navigation bar is clicked
 def go_to_page_licenses(request):
     return render(request, 'sbom_viz/licenses.html')
+
+# Endpoint that takes a user to the vulnerabilities page when the link on the navigation bar is clicked
+def go_to_page_vulnerabilities(request):
+    return render(request, 'sbom_viz/vulnerabilities.html')
+
+# Endpoint that takes a user to the PDF Preview page when the link on the navigation bar is clicked
+def go_to_page_pdf_preview(request):
+    return render(request, 'sbom_viz/pdf_preview.html')
