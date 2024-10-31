@@ -20,6 +20,7 @@ body {
     top: 0;
     left: 0;
     right: 0;
+    z-index: 100; /* Display the navigation bar above everything else */
 
     font-size: 20px;
     font-weight:800;
@@ -143,6 +144,7 @@ text.show-more{ /* The '+' or '-' text */
   background-color: #f0f0f0;
   padding: 20px;
   overflow-y: auto;
+  z-index: 100;
 }
 .card {
   background-color: white;

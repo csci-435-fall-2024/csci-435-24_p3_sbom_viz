@@ -8,10 +8,11 @@
 </head>
 <body>
     <div class="header">
-        <a href="#" id="home-link">Home</a>
+        <a href="http://127.0.0.1:8000/" id="home-link">Home</a>
         <a href="#" id="diagram-link" class="right">Diagram</a>
         <a href="#" id="licenses-link" class="right">Licenses</a>
-        <a href="#" id="dependencies-link" class="right">Dependencies</a>
+        <a href="#" id="vulnerabilities-link" class="right">Vulnerabilities</a>
+        <a href="#" id="pdf-preview-link" class="right">PDF Preview</a>
     </div>
     <div class="sidebar" id="sidebar">
         <h2>Sidebar</h2>
@@ -25,6 +26,7 @@
             new module.FileDisplayPage();
         });
     </script>
-    <div id="tree-svg-container"></div>
+    <script src="../../static/sbom_viz/js/pageTransition.js"></script>
+    <div id="tree-svg-container"></div> <!-- For positioning of the tree relative to the navigation bar -->
 </body>
 </html>
