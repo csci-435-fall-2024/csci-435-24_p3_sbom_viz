@@ -111,7 +111,7 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
 
 
     function collapseAllNodes(){
-      if (root._children && !(root.children)){ // prevent error
+      if (root._children && !(root.children)){ // prevent error from not being able to find children
         console.log("No children expanded, no need to collapse.");
       }
       else{
@@ -119,13 +119,13 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
         collapse(root);
         update(root);
       }
-      setPlusMinusButton();
+      setAllPlusMinusButton(); // these nodes are now collapsed, so set their buttons to '+'
     }
 
     function expandAllNodes(){
       expand(root);
       update(root);
-      setPlusMinusButton();
+      setAllPlusMinusButton(); // these nodes are now expanded, so set their buttons to '-'
     }
 
     /*
@@ -136,13 +136,9 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
      * Otherwise, set the text to '-' so the user knows they can collapse 
      * this node's children.
      */
-    function setPlusMinusButton(){
-      console.log("SETPLUSMINUSBUTTON");
+    function setAllPlusMinusButton(){
       d3.selectAll('.node.parent')
-        .each(function(node){
-
-          console.log(node.data.name);
-          console.log(d3.select("text.show-more").text())
+        .each(function(){
 
           // find the '+' or '-'
           d3.select(this).select("text.show-more")
@@ -164,10 +160,12 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
       const sidebar = document.getElementById('sidebar');
       let card = document.getElementById(`card-${cardName}`);
 
+      // If this card is already in the sidebar, then toggle it.
       if (card) {
           toggleCard(card, cardName);
+      
+      // Otherwise, Create a new card
       } else {
-          // Create new card
           card = document.createElement('div');
           card.className = 'card';
           card.id = `card-${cardName}`;
@@ -175,24 +173,8 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           card.onclick = function() { toggleCard(card, cardName); };
           sidebar.appendChild(card);
           cardStates[cardName] = true;
+          toggleNodeHighlight(cardName);
       }
-      
-        // Select all node labels. Filter to 
-        // the title that has the same label as this card. (*Not using label because it may be truncated*)
-        // Select the previous previous sibling of this label (the rect that presents as the node).
-        // Change the border of this rect, if this node is present in the sidebar.
-        d3.selectAll('g.node > title') 
-          .filter(function() { 
-            return d3.select(this).text() == cardName; 
-          })
-          .each(function(d){
-            d3.select(this)            // -> title element
-            .node()                    // allow for previousElementSibling call
-            .previousElementSibling    // -> #node-label
-            .previousElementSibling    // -> #node-container
-            .style.stroke = 
-            (cardStates[cardName]) ? "blue" : "steelblue"
-          });
     }
 
     function toggleCard(card, cardName) {
@@ -209,6 +191,26 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           // First time the card is clicked
           cardStates[cardName] = true;
       }
+      toggleNodeHighlight(cardName);
+    }
+
+    // Select all node labels. Filter to 
+    // the title that has the same label as this card. (*Not using label because it may be truncated*)
+    // Select the previous previous sibling of this label (the rect that presents as the node).
+    // Change the border of this rect, if this node is present in the sidebar.
+    function toggleNodeHighlight(cardName){
+        d3.selectAll('g.node > title') 
+          .filter(function() { 
+            return d3.select(this).text() == cardName; 
+          })
+          .each(function(){
+            d3.select(this)            // -> title element
+            .node()                    // allow for previousElementSibling call
+            .previousElementSibling    // -> #node-label
+            .previousElementSibling    // -> #node-container
+            .style.stroke = 
+            (cardStates[cardName]) ? "blue" : "steelblue"
+          });
     }
 
     function clearAllCards() {
@@ -448,6 +450,10 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
       function click(event, d) {
         addCard(d.data.name);
       }
+
+      // This fixes the issue of the root node  
+      // having '+' button, despite being expanded
+      setAllPlusMinusButton();
     }
 
     // Resize the canvas to fit the tree
