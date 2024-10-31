@@ -14,8 +14,12 @@ body {
     justify-content: space-around;
     background-color: #071834;
     color: lightgrey;
-    padding: 20px;
+    padding: 20px 20px;
     gap: 40px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
 
     font-size: 20px;
     font-weight:800;
@@ -134,7 +138,7 @@ text.show-more{ /* The '+' or '-' text */
   width: 25%;
   position: fixed;
   right: 0;
-  top: 0;
+  top: 67px;
   height: 100vh;
   background-color: #f0f0f0;
   padding: 20px;
@@ -162,4 +166,9 @@ text.show-more{ /* The '+' or '-' text */
 }
 .clear-all-btn:hover {
   background-color: darkblue;
+}
+
+#tree-svg-container {
+  position: relative;
+  top: 60px;
 }

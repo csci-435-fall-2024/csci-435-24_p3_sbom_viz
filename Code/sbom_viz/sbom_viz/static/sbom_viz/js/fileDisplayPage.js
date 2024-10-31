@@ -51,7 +51,7 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
     // append the svg object to the body of the page
     // appends a 'group' element to 'svg'
     // moves the 'group' element to the top left margin
-    var svg = d3.select("body").append("svg")
+    var svg = d3.select("#tree-svg-container").append("svg")
     .attr("id", "tree-svg")
     .attr("width", width + margin.right + margin.left)
         .attr("height", height + margin.top + margin.bottom)
