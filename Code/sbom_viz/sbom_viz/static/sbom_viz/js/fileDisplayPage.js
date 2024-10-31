@@ -84,16 +84,81 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
         
         update(root);
         resizeCanvas(treemap(root), node_width, node_height);
-        
-        // Collapse the node and all it's children
-        function collapse(d) {
-            if(d.children) {
-                d._children = d.children
-                d._children.forEach(collapse)
-                d.children = null
-            }
-        }
     });
+
+    // Collapse the node and all its children
+    function collapse(d) {
+      if (d.children) {
+          d._children = d.children
+          d._children.forEach(collapse)
+          d.children = null
+      }
+    }
+
+    // Expand this node and its children
+    // d._children is hidden children,
+    // d.children is visible children
+    function expand(d){
+      var children = (d.children)?d.children:d._children;
+      if (d._children) {        
+          d.children = d._children;
+          d._children = null;       
+      }
+      if(children)
+        children.forEach(expand);
+      resizeCanvas(treemap(root), node_width, node_height);
+    }
+
+
+    function collapseAllNodes(){
+      if (root._children && !(root.children)){ // prevent error
+        console.log("No children expanded, no need to collapse.");
+      }
+      else{
+        root.children.forEach(collapse);
+        collapse(root);
+        update(root);
+      }
+      setPlusMinusButton();
+    }
+
+    function expandAllNodes(){
+      expand(root);
+      update(root);
+      setPlusMinusButton();
+    }
+
+    /*
+     * Find all nodes that are parents 
+     * (these are the only nodes that have the plus/minus button).
+     * If the node does not have visible children, then set the text 
+     * in the bottom right to '+' so the user knows to expand the node's children.
+     * Otherwise, set the text to '-' so the user knows they can collapse 
+     * this node's children.
+     */
+    function setPlusMinusButton(){
+      console.log("SETPLUSMINUSBUTTON");
+      d3.selectAll('.node.parent')
+        .each(function(node){
+
+          console.log(node.data.name);
+          console.log(d3.select("text.show-more").text())
+
+          // find the '+' or '-'
+          d3.select(this).select("text.show-more")
+            .text(function(node){
+
+              // all children are 'hidden', none are visible -> this node's children are contracted
+              if (node._children && (!node.children))
+                return '+';
+              
+              // node's children are expanded
+              else 
+                return '-'
+            })
+      });
+    }
+
     const cardStates = {};
     function addCard(cardName) {
       const sidebar = document.getElementById('sidebar');
@@ -441,3 +506,5 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
 
 // Expose clearAllCards to the global scope
 window.clearAllCards = clearAllCards;
+window.collapseAllNodes = collapseAllNodes;
+window.expandAllNodes = expandAllNodes;
