@@ -32,10 +32,8 @@ class SPDXParser():
         return ignore_count
 
     def parse_licensing_information(self):
-        data_object = None
-        if (self.format == "json"):
+        if (self.version == "SPDX-2.3" and self.format == "json"): 
             data_object = json.loads(self.data)
-        if (self.version == "SPDX-2.3"): 
             if ("dataLicense" in data_object): # This handles the top-level document metadata component
                 self.add_to_licenses_frequency_map(data_object["dataLicense"])
                 if ("SPDXID" in data_object):
@@ -87,7 +85,24 @@ class SPDXParser():
             seeker += 1
         return spdx_version
 
-    def parse_file(self, path):
+    def parse_file_information(self):
+        file_list = []
+        if (self.version == "SPDX-2.3" and self.format == "json"): 
+            data_object = json.loads(self.data)
+            if ("files" in data_object):
+                for file in data_object["files"]:
+                    reformatted_file = {} # We need to replace the attribute name 'SPDXID' with 'id'
+                    for attribute in file:
+                        if (attribute == "SPDXID"):
+                            reformatted_file['id'] = file[attribute]
+                        elif (attribute == "fileName"):
+                            reformatted_file['name'] = file[attribute]
+                        else:
+                            reformatted_file[attribute] = file[attribute]
+                    file_list.append(reformatted_file)
+        return file_list
+
+    def parse_sbom(self, path):
         # store file contents as a string in self.data
         with open(path, 'r') as f: 
             self.data = f.read()
@@ -97,6 +112,7 @@ class SPDXParser():
         # determine and store version in self.version
         self.version = self.get_version()
         self.parse_licensing_information()
+        self.file_list = self.parse_file_information()
         
     
     def get_document(self):
