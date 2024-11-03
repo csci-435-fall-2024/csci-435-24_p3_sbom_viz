@@ -164,6 +164,20 @@ class SPDXParser():
         for component in self.get_components():
             if ('id' in component):
                 self.id_data_map[component['id']] = component
+    
+    # Must be called after parsing document, file, and package information
+    # Otherwise get_components() will be inacurate
+    def parse_purl_to_id_map(self):
+        
+        for component in self.get_components():
+            if (self.version == "SPDX-2.3" and self.format == "json" and 'id' in component and 'externalRefs' in component):
+                for ref in component['externalRefs']:
+                    if ('referenceType' in ref and ref['referenceType'] == "purl" and 'referenceLocator' in ref):
+                        purl = ref['referenceLocator']
+                        if (purl not in self.purl_id_map):
+                            self.purl_id_map[purl] = component['id']
+                        else:
+                            print("\n\nDuplicate purl detected. This line comes from scripts/parse_files.py in the method parse_purl_to_id_map()\n\n")
 
     def parse_sbom(self, path):
         # store file contents as a string in self.data
@@ -180,6 +194,7 @@ class SPDXParser():
         self.parse_package_information()
         self.parse_relationship_information()
         self.parse_id_to_data_map()
+        self.parse_purl_to_id_map()
         
     
     def get_document(self):
@@ -207,5 +222,5 @@ class SPDXParser():
         license_info['mapping'] = self.id_license_map
         return license_info
 
-    def get_id_purl_map(self):
+    def get_purl_id_map(self):
         return self.purl_id_map
