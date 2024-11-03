@@ -85,6 +85,21 @@ class SPDXParser():
             seeker += 1
         return spdx_version
 
+    # returns a dictionary holding the sbom document component without the files, packages, or relationships attributes
+    # since that information can be accessed through other functions
+    def parse_document_information(self):
+        document = {}
+        if (self.version == "SPDX-2.3" and self.format == "json"): 
+            data_object = json.loads(self.data)
+            for attribute in data_object:
+                if (attribute == "SPDXID"):
+                    document['id'] = data_object[attribute]
+                elif (attribute == 'files' or attribute == 'relationships' or attribute == 'packages'):
+                    continue
+                else:
+                    document[attribute] = data_object[attribute]
+        return document
+    
     def parse_file_information(self):
         file_list = []
         if (self.version == "SPDX-2.3" and self.format == "json"): 
@@ -102,6 +117,22 @@ class SPDXParser():
                     file_list.append(reformatted_file)
         return file_list
 
+    def parse_package_information(self):
+        package_list = []
+        if (self.version == "SPDX-2.3" and self.format == "json"): 
+            data_object = json.loads(self.data)
+            if ('packages' in data_object):
+                for package in data_object['packages']:
+                    reformatted_package = {}
+                    for attribute in package:
+                        if (attribute == "SPDXID"):
+                            reformatted_package['id'] = package[attribute]
+                        else:
+                            reformatted_package[attribute] = package[attribute]
+                    package_list.append(reformatted_package)
+        return package_list
+
+
     def parse_sbom(self, path):
         # store file contents as a string in self.data
         with open(path, 'r') as f: 
@@ -112,7 +143,9 @@ class SPDXParser():
         # determine and store version in self.version
         self.version = self.get_version()
         self.parse_licensing_information()
+        self.document = self.parse_document_information()
         self.file_list = self.parse_file_information()
+        self.package_list = self.parse_package_information()
         
     
     def get_document(self):
