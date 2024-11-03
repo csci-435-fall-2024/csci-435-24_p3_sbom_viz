@@ -158,6 +158,13 @@ class SPDXParser():
                     relationship_list.append(relationship)
         self.relationship_list = relationship_list
 
+    # Must be called after parsing document, file, and package information
+    # Otherwise get_components() will be inacurate
+    def parse_id_to_data_map(self):
+        for component in self.get_components():
+            if ('id' in component):
+                self.id_data_map[component['id']] = component
+
     def parse_sbom(self, path):
         # store file contents as a string in self.data
         with open(path, 'r') as f: 
@@ -172,6 +179,7 @@ class SPDXParser():
         self.parse_file_information()
         self.parse_package_information()
         self.parse_relationship_information()
+        self.parse_id_to_data_map()
         
     
     def get_document(self):
