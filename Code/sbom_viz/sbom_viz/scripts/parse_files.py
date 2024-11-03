@@ -132,6 +132,31 @@ class SPDXParser():
                     package_list.append(reformatted_package)
         self.package_list = package_list
 
+    def parse_relationship_information(self):
+        relationship_list = []
+        if (self.version == "SPDX-2.3" and self.format == "json"): 
+            data_object = json.loads(self.data)
+            if ('relationships' in data_object):
+                for relationship in data_object['relationships']:
+                    reformatted_relationship = {}
+                    for attribute in relationship:
+                        if (attribute == 'spdxElementId'):
+                            reformatted_relationship['source_id'] = relationship[attribute]
+                        elif (attribute == 'relatedSpdxElement'):
+                            reformatted_relationship['target_id'] = relationship[attribute]
+                        elif (attribute == 'relationshipType'):
+                            reformatted_relationship['type'] = relationship[attribute]
+                    relationship_list.append(reformatted_relationship)
+            if ('documentDescribes' in data_object): 
+                # There may be relationships described from the top-level sbom component that weren't present in relationships
+                for target_id in data_object['documentDescribes']:
+                    relationship = {}
+                    if ("SPDXID" in data_object):
+                        relationship['source_id'] = data_object['SPDXID']
+                    relationship['type'] = "DESCRIBES"
+                    relationship['target_id'] = target_id
+                    relationship_list.append(relationship)
+        self.relationship_list = relationship_list
 
     def parse_sbom(self, path):
         # store file contents as a string in self.data
@@ -146,6 +171,7 @@ class SPDXParser():
         self.parse_document_information()
         self.parse_file_information()
         self.parse_package_information()
+        self.parse_relationship_information()
         
     
     def get_document(self):
