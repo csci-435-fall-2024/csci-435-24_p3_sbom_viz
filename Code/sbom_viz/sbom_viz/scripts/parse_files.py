@@ -83,7 +83,7 @@ class SPDXParser():
             elif (found_quote):
                 spdx_version += self.data[seeker]
             seeker += 1
-        return spdx_version
+        self.version = spdx_version
 
     # returns a dictionary holding the sbom document component without the files, packages, or relationships attributes
     # since that information can be accessed through other functions
@@ -98,7 +98,7 @@ class SPDXParser():
                     continue
                 else:
                     document[attribute] = data_object[attribute]
-        return document
+        self.document = document
     
     def parse_file_information(self):
         file_list = []
@@ -115,7 +115,7 @@ class SPDXParser():
                         else:
                             reformatted_file[attribute] = file[attribute]
                     file_list.append(reformatted_file)
-        return file_list
+        self.file_list = file_list
 
     def parse_package_information(self):
         package_list = []
@@ -130,7 +130,7 @@ class SPDXParser():
                         else:
                             reformatted_package[attribute] = package[attribute]
                     package_list.append(reformatted_package)
-        return package_list
+        self.package_list = package_list
 
 
     def parse_sbom(self, path):
@@ -141,11 +141,11 @@ class SPDXParser():
         if (".json" in path): 
             self.format = "json"
         # determine and store version in self.version
-        self.version = self.get_version()
+        self.get_version()
         self.parse_licensing_information()
-        self.document = self.parse_document_information()
-        self.file_list = self.parse_file_information()
-        self.package_list = self.parse_package_information()
+        self.parse_document_information()
+        self.parse_file_information()
+        self.parse_package_information()
         
     
     def get_document(self):
