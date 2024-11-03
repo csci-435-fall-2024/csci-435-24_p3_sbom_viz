@@ -1,7 +1,11 @@
+import json
+import re
 class SPDXParser():
 
     def __init__(self):
         self.data = ""
+        self.format = ""
+        self.version = ""
         self.document = {}
         self.file_list = []
         self.package_list = []
@@ -21,16 +25,44 @@ class SPDXParser():
         # This method will return an integer value for how many times licenses were ignored with a new value
         # This would happen if an id has a license added to it multiple times
         ignore_count = 0
-        if (id in self.id_license_map and license != self.id_license_map[id]):
-            ignore_count += 1
-        elif (id not in self.id_license_map):
+        if (id in self.id_license_map and license != self.id_license_map[id]): # True when an id already has a license stored that is different from the passed in license
+            ignore_count += 1 
+        elif (id not in self.id_license_map): 
             self.id_license_map[id] = license
         return ignore_count
 
+    def parse_licensing_information(self):
+        data_object = None
+        if (self.format == "json"):
+            data_object = json.loads(self.data)
+        if (self.version == "SPDX-2.3"):
+            pass
+        
+    def get_version(self):
+        match = re.search("spdxVersion\":", self.data)
+        seeker = match.end() 
+        found_quote = False
+        spdx_version = ""
+        while True:
+            if (found_quote == False and self.data[seeker] == "\""):
+                found_quote = True
+            elif (self.data[seeker] == "\""):
+                break;
+            elif (found_quote):
+                spdx_version += self.data[seeker]
+            seeker += 1
+        return spdx_version
 
     def parse_file(self, path):
-        with open(path, 'r') as f:
+        # store file contents as a string in self.data
+        with open(path, 'r') as f: 
             self.data = f.read()
+        # determine and store format in self.format 
+        if (".json" in path): 
+            self.format = "json"
+        # determine and store version in self.version
+        self.version = self.get_version()
+        self.parse_licensing_information()
         
     
     def get_document(self):
