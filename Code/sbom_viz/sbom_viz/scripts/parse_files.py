@@ -21,7 +21,7 @@ class SPDXParser():
         else:
             self.license_frequency_map[license_string] += 1
 
-    def add_to_license_map(self, id, license): 
+    def add_to_id_license_map(self, id, license): 
         # This method will return an integer value for how many times licenses were ignored with a new value
         # This would happen if an id has a license added to it multiple times
         ignore_count = 0
@@ -35,9 +35,43 @@ class SPDXParser():
         data_object = None
         if (self.format == "json"):
             data_object = json.loads(self.data)
-        if (self.version == "SPDX-2.3"):
-            pass
-        
+        if (self.version == "SPDX-2.3"): 
+            if ("dataLicense" in data_object): # This handles the top-level document metadata component
+                self.add_to_licenses_frequency_map(data_object["dataLicense"])
+                if ("SPDXID" in data_object):
+                    self.add_to_id_license_map(data_object["SPDXID"], data_object["dataLicense"])
+            for package in data_object['packages']:
+                if ("licenseDeclared" in package and package["licenseDeclared"] == "NOASSERTION" and "licenseConcluded" in package): # SPDX documentation says to prefer licenseDeclared over licenseConcluded, so it is only used when licenseDeclared is NOASSERTION
+                    self.add_to_licenses_frequency_map(package['licenseConcluded'])
+                    if ("SPDXID" in package):
+                        self.add_to_id_license_map(package["SPDXID"], package["licenseConcluded"])
+                elif ("licenseDeclared" in package):
+                    self.add_to_licenses_frequency_map(package['licenseDeclared'])
+                    if ("SPDXID" in package):
+                        self.add_to_id_license_map(package["SPDXID"], package["licenseDeclared"])
+            for file in data_object['files']:
+                if ("licenseConcluded" in file and file["licenseConcluded"] != "NOASSERTION"):
+                    self.add_to_licenses_frequency_map(file["licenseConcluded"])
+                    if ("SPDXID" in file):
+                        self.add_to_id_license_map(file["SPDXID"], file["licenseConcluded"])
+                elif ("licenseInfoInFile" in file): # might be a list of licenses. This is an alternative storage of license info
+                    licenseInfo = ""
+                    count = 1
+                    num_licenses = len(file["licenseInfoInFile"])
+                    for license in file["licenseInfoInFile"]:
+                        licenseInfo += license
+                        if (count < num_licenses):
+                            licenseInfo += " and "
+                        count += 1
+                    self.add_to_licenses_frequency_map(licenseInfo)
+                    if ("SPDXID" in file):
+                        self.add_to_id_license_map(file["SPDXID"], licenseInfo)
+                else: # if no licensing information is stored for a file, it is equivalent to NOASSERTION according to SPDX documentation https://spdx.github.io/spdx-spec/v2.3/file-information/
+                    self.add_to_licenses_frequency_map("NOASSERTION")
+                    if ("SPDXID" in file):
+                        self.add_to_id_license_map(file["SPDXID"], "NOASSERTION")
+
+
     def get_version(self):
         match = re.search("spdxVersion\":", self.data)
         seeker = match.end() 
