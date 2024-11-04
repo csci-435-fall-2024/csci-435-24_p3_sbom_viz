@@ -50,10 +50,10 @@ The input is parsed and stored in a workable format in `sbom_viz/templates/data.
 From there, selecting the 'Upload File' button will take you to the SBOM display page (`sbom_viz/static/sbom_viz/js/FileDisplayPage.js`).
 
 ### Tree visualization
-The tree visualization page displays your inputted SBOM file in the form of a tree, with a single `root` node added. Each node of the tree represents a single software component present in the SBOM file. You can interact with the tree through:
-  - Clicking on a node -> display node in the sidebar
-  - Clicking **+** on a node -> expand the children of this node
-  - Clicking **-** on a node -> contract the children of this node
+The tree visualization page displays your inputted SBOM file in the form of a tree, with a single `root` node added. Each node of the tree represents a single software component present in the SBOM file. There are three ways to interact with the nodes on the tree:
+  - Clicking the circle in the bottom left -> expand or collapse __all children__ of this node, depending on if there are children to expand.
+  - Clicking the square in the bottom right -> expand or collapse __only the next level of children__ under this node, depending on if there are children to expand.
+  - Clicking anywhere else on the node -> add this node to the sidebar to view more information *(a node can be removed from the sidebar by clicking on the node again, or clicking on its corresponding card in the sidebar)*.
     
 The **Sidebar** on the right of the screen has the following features:
   - When a node is added to the sidebar, the corresponding node is highlighted with a blue border.
