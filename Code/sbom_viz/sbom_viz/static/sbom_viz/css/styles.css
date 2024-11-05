@@ -187,6 +187,7 @@ text.show-more{ /* The '+' or '-' text */
   color: #151515;
   margin: auto;
   text-align: center;
+  padding-bottom: 30px;
 }
 
 .bold {
@@ -199,7 +200,6 @@ text.show-more{ /* The '+' or '-' text */
   display: flex;
   flex-direction: row;
   justify-content: center;
-  gap: 60px;
 }
 
 #severity-container{
@@ -224,6 +224,14 @@ text.show-more{ /* The '+' or '-' text */
   margin-bottom: -20px;
 }
 
-.severity h2 {
+/* Increase distance between h2 and content */
+.severity h2, .vulner-table-container h2{
   padding-bottom: 20px; /* center the list of severities at the same line as the pie chart*/
+}
+
+.vulner-table-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 100px;
 }
