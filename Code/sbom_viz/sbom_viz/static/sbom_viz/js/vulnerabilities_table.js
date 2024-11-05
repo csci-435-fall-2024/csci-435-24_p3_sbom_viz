@@ -70,7 +70,7 @@ var data = [
 
 // render the table
 data.sort((a,b) => b.score - a.score); // sort by highest value
-tabulate(data.slice(0,9), ['component name', 'version', 'score']); // table with all columns
+tabulate(data.slice(0,10), ['component name', 'version', 'score']); // table with all columns
 
 /*
 if data comes in as csv:
