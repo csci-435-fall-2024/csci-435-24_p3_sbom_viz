@@ -1,5 +1,6 @@
 import json
 import re
+
 class SPDXParser():
 
     def __init__(self):
@@ -71,19 +72,20 @@ class SPDXParser():
 
 
     def get_version(self):
-        match = re.search("spdxVersion\":", self.data)
-        seeker = match.end() 
-        found_quote = False
-        spdx_version = ""
-        while True:
-            if (found_quote == False and self.data[seeker] == "\""):
-                found_quote = True
-            elif (self.data[seeker] == "\""):
-                break;
-            elif (found_quote):
-                spdx_version += self.data[seeker]
-            seeker += 1
-        self.version = spdx_version
+        if (self.format == "json"):
+            match = re.search("spdxVersion\"", self.data)
+            seeker = match.end() 
+            found_quote = False
+            spdx_version = ""
+            while True:
+                if (found_quote == False and self.data[seeker] == "\""):
+                    found_quote = True
+                elif (self.data[seeker] == "\""):
+                    break;
+                elif (found_quote):
+                    spdx_version += self.data[seeker]
+                seeker += 1
+            self.version = spdx_version
 
     # returns a dictionary holding the sbom document component without the files, packages, or relationships attributes
     # since that information can be accessed through other functions
@@ -179,13 +181,16 @@ class SPDXParser():
                         else:
                             print("\n\nDuplicate purl detected. This line comes from scripts/parse_files.py in the method parse_purl_to_id_map()\n\n")
 
-    def parse_sbom(self, path):
+    def parse_file(self, path):
         # store file contents as a string in self.data
         with open(path, 'r') as f: 
             self.data = f.read()
         # determine and store format in self.format 
-        if (".json" in path): 
+        try:
+            json.loads(self.data)
             self.format = "json"
+        except ValueError:
+            pass
         # determine and store version in self.version
         self.get_version()
         self.parse_licensing_information()
@@ -206,6 +211,9 @@ class SPDXParser():
     def get_relationships(self):
         return self.relationship_list
     
+    def get_packages(self):
+        return self.package_list
+
     def get_components(self):
         components = []
         components.append(self.document)
