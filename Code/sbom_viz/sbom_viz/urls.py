@@ -30,6 +30,7 @@ urlpatterns = [
     path("tree/", views.get_tree, name = "get-tree"),
     path("id-data-map/", views.get_data_map, name = "get-map"),
     path("uploaded/", views.is_sbom_uploaded, name="uploaded"),
+    path("filename/", views.get_filename, name="get-filename"),
 
   # Previously used to get tree via HttpResponse to 127... /data.json
   # re_path(r"[a-zA-Z]*.json$", views.json, name = "json") # allow D3 to query for data as a JSON file

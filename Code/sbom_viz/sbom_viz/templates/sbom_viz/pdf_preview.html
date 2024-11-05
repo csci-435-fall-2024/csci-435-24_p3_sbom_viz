@@ -7,6 +7,12 @@
     <title>Licenses</title>
 </head>
 <body>
+    <script type="module" src="../../static/sbom_viz/js/licenses_pie.js"></script>
+    <script type="module" src="../../static/sbom_viz/js/licenses_table.js"></script>
+    <script type="module" src="../../static/sbom_viz/js/vulnerabilities_pie.js"></script>
+    <script type="module" src="../../static/sbom_viz/js/vulnerabilities_table.js"></script>
+    <script type="module" src="../../static/sbom_viz/js/pdfPreview.js"></script>
+
     <div class="header">
         <a href="http://127.0.0.1:8000/" id="home-link">Home</a>
         <a href="http://127.0.0.1:8000/diagram" id="diagram-link" class="right">Diagram</a>
@@ -16,6 +22,50 @@
     </div>
     <div class="body-space"> <!-- Put all page content inside this div (body-space) so it will not be drawn beneath the navigation bar. -->
         <div class="centered-title">PDF Preview</div>
+        <div class="sep"></div>
+        <div id="overview-content">
+            <div><span class="bold">SBOM File: </span><span id="filename-field"></span></div>
+        </div>
+        <div class="sep"></div>
+        <div id="license-content">
+            <div class="centered-title">Licenses</div>
+
+            <div id="license-count-container" class="severity">
+                <h2 class="centered">Number of Distinct Licenses: <span id="number-distinct-licenses">15</span></h2>
+            </div>
+            <div id="top-view">
+                <div id="license-distribution-container" class="distribution">
+                    <h2>Distribution</h2>
+                    <div id="license-pie-chart-container"></div>
+                </div>
+                <div class="license-table-container">
+                    <h2>10 Most Frequent License Types</h2>
+                    <div id="license-table" class="table"></div>
+                    <a id="license-documentation-link" href="https://spdx.org/licenses/" target="_" class="hyperlink">Learn more about these licenses</a>
+                </div>
+            </div>    
+        </div>
+        <div class="sep"></div>
+        <div id="vulnerability-content">
+            <div class="centered-title">Vulnerabilities</div>
+
+            <div id="top-view">
+                <div id="severity-container" class="severity">
+                    <h2>CVSS Severity Counts</h2>
+                    <div id="severity-lines"></div>
+                </div>
+                <div id="distribution-container" class="distribution">
+                    <h2>Distribution</h2>
+                    <div id="pie-chart-container"></div>
+                </div>
+                <div class="vulner-table-container">
+                    <h2>Top 10 Vulnerabilities by CVSS Score</h2>
+                    <div id="vulner-table" class="table"></div>
+                </div>
+            </div>
+
+        </div>
+        <div class="sep"></div>
     </div>
 </body>
 </html>

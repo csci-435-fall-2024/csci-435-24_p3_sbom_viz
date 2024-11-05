@@ -204,6 +204,7 @@ text.show-more{ /* The '+' or '-' text */
   margin-top: 20px;
   display: flex;
   flex-direction: row;
+  flex-wrap: wrap;
   justify-content: center;
 }
 
@@ -249,4 +250,10 @@ text.show-more{ /* The '+' or '-' text */
 .hyperlink:hover {
   color: #AAAAEE;
   text-decoration: underline;
+}
+
+.sep { /* separator between different regions on PDF preview page */
+  border-top: 1px solid black;
+  width: 100%;
+  margin: 10px 0px;
 }

@@ -22,7 +22,7 @@ var data = [
    */
 
   function tabulate(data, columns) {
-	var table = d3.select('.table').append('table')
+	var table = d3.select('#vulner-table').append('table')
         .style("border", "2px black solid")
         .style("border-collapse", "collapse");
 	var thead = table.append('thead');

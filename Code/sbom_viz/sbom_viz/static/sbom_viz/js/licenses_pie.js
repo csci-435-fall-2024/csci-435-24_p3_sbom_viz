@@ -24,7 +24,7 @@ const margin = 50;
 
 let radius = Math.min(width, height) / 2 - margin
 
-const svg = d3.select("#pie-chart-container")
+const svg = d3.select("#license-pie-chart-container")
                 .append("svg")
                     .attr("width", width)
                     .attr("height", height)
@@ -95,21 +95,8 @@ svg.selectAll("text")
             .text(d => d.data.count));
 
 
-/* Sum number of vulnerabilities to show as a percentage */
-var num_vulnerabilities = 0;
+/* Sum number of licenses to show as a percentage */
+/*var num_vulnerabilities = 0;
 for (var i = 0; i < data.length; i++){
     num_vulnerabilities += data[i].count;
-}
-
-/* Add CVSS count text at top left of page for each category of vulnerability found*/
-const container = document.querySelector("#severity-lines")
-data.forEach(d => {
-    const p = document.createElement("p");
-    const span = document.createElement("span");
-    const percentage = (100*(d.count / num_vulnerabilities)).toFixed(1); 
-    span.textContent = `${d.name}: `;
-    span.className = "bold";
-    p.appendChild(span);
-    p.appendChild(document.createTextNode(`${d.count} (${percentage}%)`));
-    container.appendChild(p);
-});
+}*/

@@ -115,6 +115,7 @@ sbom_parser = SBOMParser()
 data_map = {"SPDXRef-DOCUMENT": {"name": "SPDXRef-DOCUMENT"}}
 sbom_tree = {}
 uploaded = False    # represents whether an SBOM has been uploaded yet
+filename = ""
 
 # DEPRECATED -- will not work with page transitions from navigation bar links. See go_to_page_diagram for its replacement.
 def home(request):
@@ -170,6 +171,7 @@ def go_to_page_home(request):
 # Endpoint that takes a user to the tree diagram page when the link on the navigation bar is clicked
 def go_to_page_diagram(request):
     global uploaded
+    global filename
     # If no file has been uploaded yet, and the user tries to force the app to go to the tree diagram page without uploading a file (via the browser search bar), display a 403 Forbidden error.
     if len(request.FILES) == 0 and not uploaded:
         raise PermissionDenied()
@@ -177,6 +179,7 @@ def go_to_page_diagram(request):
     if request.method == "POST" and len(request.FILES) == 1:
         uploaded = True
         file = request.FILES["file-select-input"]
+        filename = file.name
         print(type(file))
         sbom_parser.parse_file(file.temporary_file_path())
         file_contents = ""
@@ -196,3 +199,7 @@ def go_to_page_vulnerabilities(request):
 # Endpoint that takes a user to the PDF Preview page when the link on the navigation bar is clicked
 def go_to_page_pdf_preview(request):
     return render(request, 'sbom_viz/pdf_preview.html')
+
+def get_filename(request):
+    global filename
+    return JsonResponse(data={"filename":filename})
