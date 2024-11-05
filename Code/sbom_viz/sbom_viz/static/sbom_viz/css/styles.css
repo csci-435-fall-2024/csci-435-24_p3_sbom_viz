@@ -192,3 +192,38 @@ text.show-more{ /* The '+' or '-' text */
 .bold {
   font-weight: bold;
 }
+
+/* vulnerabilities page */
+#top-view {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 60px;
+}
+
+#severity-container{
+  display: flex;
+  flex-direction: column;
+}
+
+/* add padding to the left so they are indented */
+#severity-lines {
+  padding-left: 20px;
+}
+
+#distribution-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Shorten distance between "Distribution" and pie chart*/
+.distribution h2 {
+  margin-bottom: -20px;
+}
+
+.severity h2 {
+  padding-bottom: 20px; /* center the list of severities at the same line as the pie chart*/
+}

@@ -17,22 +17,25 @@
     </div>
     <div class="body-space"> <!-- Put all page content inside this div (body-space) so it will not be drawn beneath the navigation bar. -->
         <div class="centered-title">Vulnerabilities</div>
-            <h2>CVSS Severity Counts</h2>
-            <p><span class="bold">Critical:</span> #</p>
-            <p><span class="bold">High:</span> #</p>
-            <p><span class="bold">Medium:</span> #</p>
-            <p><span class="bold">Low:</span> #</p>
-            <p><span class="bold">None:</span> #</p>
 
-            <div id="pie-chart-container"></div>
-            <h2>Distribution</h2>
-            <p>// Add pie chart here</p>
-            <script type="module" src="../../static/sbom_viz/js/vulnerabilities_pie.js"></script>
-
-            <div>
-                <h2>Top Vulnerabilities</h2>
-                <p>// Add table of 10 most dangerous vulnerabilities here (No. | Name | Score)</p>
+        <div id="top-view">
+            <div id="severity-container" class="severity">
+                <h2>CVSS Severity Counts</h2>
+                <div id="severity-lines"></div>
+            </div>
+            <div id="distribution-container" class="distribution">
+                <h2>Distribution</h2>
+                <div id="pie-chart-container"></div>
             </div>
         </div>
+
+        
+        <script type="module" src="../../static/sbom_viz/js/vulnerabilities_pie.js"></script>
+
+        <div>
+            <h2>Top Vulnerabilities</h2>
+            <p>// Add table of 10 most dangerous vulnerabilities here (No. | Name | Score)</p>
+        </div>
+    </div>
 </body>
 </html>

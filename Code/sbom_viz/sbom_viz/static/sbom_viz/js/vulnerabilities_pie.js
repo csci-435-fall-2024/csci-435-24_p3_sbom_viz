@@ -90,3 +90,23 @@ svg.selectAll("text")
             .attr("y", "0.7em")
             .attr("fill-opacity", 0.7)
             .text(d => d.data.count));
+
+
+/* Sum number of vulnerabilities to show as a percentage */
+var num_vulnerabilities = 0;
+for (var i = 0; i < data.length; i++){
+    num_vulnerabilities += data[i].count;
+}
+
+/* Add CVSS count text at top left of page for each category of vulnerability found*/
+const container = document.querySelector("#severity-lines")
+data.forEach(d => {
+    const p = document.createElement("p");
+    const span = document.createElement("span");
+    const percentage = (100*(d.count / num_vulnerabilities)).toFixed(1); 
+    span.textContent = `${d.name}: `;
+    span.className = "bold";
+    p.appendChild(span);
+    p.appendChild(document.createTextNode(`${d.count} (${percentage}%)`));
+    container.appendChild(p);
+});
