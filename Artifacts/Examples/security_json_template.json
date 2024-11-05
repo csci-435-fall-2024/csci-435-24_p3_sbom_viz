@@ -1,0 +1,41 @@
+{"Summary":{
+    "SeverityDistr":{
+        "CRITICAL": 0,
+        "HIGH": 0,
+        "MEDIUM": 0,
+        "LOW": 0,
+        "NONE": 0
+    },
+    "Top_10":{
+        "CVE_ID": {"SBOM_ID": "",
+                    "SeveritySource":"",
+                    "Title":"",
+                    "Description": "",
+                    "Severity": "",
+                    "CWE_IDs":[],
+                    "Displayed_CVSS": 0 
+                    }
+            }
+},
+"Effected_Components":{
+    "SBOM_ID": {
+     "PURL": "",
+     "Dependents":[],
+     "InstalledVersion": "",
+     "Vulnerabilities":[
+        {"CVE_ID": "",
+         "SeveritySource":"",
+         "Status": "",
+         "Title":"",
+         "Description": "",
+         "Severity": "",
+         "CWE_IDs":[],
+         "CVSS": {},
+         "Displayed_CVSS":{},
+         "References": [],
+         "PublishedDate":"",
+         "LastModifiedDate":""
+        }
+    ]}
+}
+}

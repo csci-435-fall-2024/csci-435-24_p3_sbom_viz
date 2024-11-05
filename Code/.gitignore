@@ -16,3 +16,7 @@ db.sqlite3
 
 # Sqlite database
 db.sqlite3
+
+# Security 
+sec_config.txt
+security_scanning_tools/
