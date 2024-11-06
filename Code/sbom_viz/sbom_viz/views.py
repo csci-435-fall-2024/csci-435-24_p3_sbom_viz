@@ -1,13 +1,13 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-from lib4sbom.parser import SBOMParser
-from sbom_viz.scripts import build_tree
-from django.core.exceptions import PermissionDenied
-
+from sbom_viz.scripts.tree_builder import TreeBuilder
+from sbom_viz.config.feature_flags import FLAGS
+from sbom_viz.scripts import parse_files, tree_builder
 import json
 
 mock_tree = {
-    "name" : "SBOM Root", # artificial root node
+    "sbomId" : "SBOM Root", # artificial root node
+    "nodeId" : 0,
     "type" : "ROOT", # special type for root node, not official SBOM
     "ghost" : False,
     "relationships" : 
@@ -17,6 +17,7 @@ mock_tree = {
     "children" : [
         {
             "name" : "SPDXRef-DOCUMENT",
+            "id" : 1,
             "type" : "DOCUMENT",
             "ghost" : False,
             "relationships" :
@@ -111,22 +112,36 @@ mock_tree = {
     ]
 }
 
-sbom_parser = SBOMParser()
-data_map = {"SPDXRef-DOCUMENT": {"name": "SPDXRef-DOCUMENT"}}
+sbom_parser = parse_files.SPDXParser()
+data_map = {}
 sbom_tree = {}
 uploaded = False    # represents whether an SBOM has been uploaded yet
 filename = ""
 
 # DEPRECATED -- will not work with page transitions from navigation bar links. See go_to_page_diagram for its replacement.
 def home(request):
+    global sbom_parser
+    global data_map
     if request.method == "POST" and len(request.FILES) == 1:
         file = request.FILES["file-select-input"]
-        print(type(file))
-        sbom_parser.parse_file(file.temporary_file_path())
-        file_contents = ""
-        for line in file:
-            file_contents += line.decode()+'\n'
-        return render(request, 'sbom_viz/display_file.html', {"file_contents": file_contents})
+        with open(file.temporary_file_path(), 'r') as f:
+            data = f.read()
+        is_json = False
+        try:
+            json.loads(data)
+            is_json = True
+        except ValueError:
+            pass
+        if ("SPDXID" in data and is_json):
+            sbom_parser = parse_files.SPDXParser()
+            data_map = sbom_parser.get_id_data_map()
+            sbom_parser.parse_file(file.temporary_file_path())
+            file_contents = ""
+            for line in file:
+                file_contents += line.decode()+'\n'
+            return render(request, 'sbom_viz/display_file.html', {"file_contents": file_contents})
+        else:
+            return render(request, 'sbom_viz/index.html') 
     else:
         pass
         #return render(request, 'sbom_viz/index.html')    
@@ -140,23 +155,24 @@ def json(request):
 '''
     
 def get_tree(request):
-    should_return_mock_tree = False
     if request.method == "GET":
-        if (should_return_mock_tree):
+        global sbom_parser
+
+        if FLAGS["use_mock_tree"]:
             return JsonResponse(mock_tree)
-        else:
-            return JsonResponse(data=build_tree.get_relationship_tree(sbom_parser, data_map), json_dumps_params={"indent": 4}) 
 
+        tree_builder = TreeBuilder(sbom_parser.get_relationships(), sbom_parser.get_components())
+    
+        tree_builder.build_tree()
 
+        return JsonResponse(data=tree_builder.get_tree_as_dict(), json_dumps_params={"indent": 4})
     
 # This method is called when requesting the URL: localhost:8000/id-data-map
 # This url should only be called after the user submits the file upload form. Otherwise the returned data is nearly empty    
 def get_data_map(request):
+    global data_map
+    global sbom_parser
     if request.method == "GET":
-        for i in sbom_parser.get_files():
-            data_map[i["id"]] = i
-        for i in sbom_parser.get_packages():
-            data_map[i["id"]] = i
         return JsonResponse(data=data_map, json_dumps_params={"indent": 4})
     
 # Indicates if an SBOM has been uploaded
