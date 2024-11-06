@@ -1,0 +1,168 @@
+* {
+    font-family: system-ui;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    background-color: #071834;
+    color: lightgrey;
+    padding: 20px;
+    gap: 40px;
+
+    font-size: 20px;
+    font-weight:800;
+}
+
+#home-link {
+    margin-right:auto;
+}
+
+/* The links to other pages in the header*/
+a {
+    color: inherit;
+    text-decoration: inherit;
+}
+
+/* "Upload SBOM File */
+#title { 
+    font-size: 32px;
+    font-weight: bolder;
+    color: #151515;
+}
+
+/* The entire middle section */
+form {
+    display:flex;
+    margin-top: auto;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+    padding:100px;
+}
+
+/* The select file area. I put in the gray dotted box
+   since it looked nice, but we don't have drag and drop 
+   functionality yet */
+.file-select {
+    display: flex;
+    outline: dashed 4px rgb(181, 185, 187);
+    outline-offset: 0px;
+    background-color: rgb(236, 234, 234);
+    border-radius: 5px;
+    width: 325px;
+    height: 175px;
+    justify-content: center;
+    align-items: center;
+
+}
+
+/* Remove default file select styling to use the styling 
+   under .file-select label instead */
+   input[type="file"] {
+    display: none;
+}
+
+.file-select label {
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
+    background-color:rgb(188, 189, 190);
+    border-radius: 3px;
+}
+
+/* 
+Didn't find a need for styling the filetype selecting
+area, but just in case we want to change it later
+.file-type {
+
+}
+*/
+
+/* Make the "Select SBOM Standard" text bolder */
+label[for="file-standard-selector"] {
+    font-weight: bolder;
+}
+
+#upload-button {
+    background-color: rgb(79, 87, 87);
+    color:whitesmoke;
+    font-weight: bolder;
+    border-radius: 6px;
+    width: 325px;
+    padding: 15px;
+
+}
+
+rect#node-container.node { /* Large rect node container */
+    fill: #fff;
+    stroke: steelblue;
+    stroke-width: 3px;
+}
+  
+.node text#node-label { /* Label of node in center of rect */
+  font-size: 12px;
+}
+
+.link { /* Path between nodes */
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 2px;
+}
+
+.show-more { /* Both the show-more rect and text */
+  cursor: pointer;
+}
+
+rect.show-more { /* Represents the box around the '+' or '-' */
+  fill: lightgray;
+  border: 2px solid steelblue;
+  border-radius: 2px;
+}
+
+text.show-more{ /* The '+' or '-' text */
+  dominant-baseline: middle; /* Helps to center text in rect */
+}
+
+/* Sidebar stuff */
+.sidebar {
+  width: 25%;
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  background-color: #f0f0f0;
+  padding: 20px;
+  overflow-y: auto;
+}
+.card {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+.card:hover {
+  border: 1px solid blue;
+}
+.clear-all-btn {
+  margin-bottom: 20px;
+  padding: 5px 10px;
+  background-color: blue;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.clear-all-btn:hover {
+  background-color: darkblue;
+}
