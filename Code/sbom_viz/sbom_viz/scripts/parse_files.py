@@ -33,7 +33,7 @@ class SPDXParser():
         return ignore_count
 
     def parse_licensing_information(self):
-        if (self.version == "SPDX-2.3" and self.format == "json"): 
+        if ((self.version == "SPDX-2.3" or self.version == "SPDX-2.2") and self.format == "json"): 
             data_object = json.loads(self.data)
             if ("dataLicense" in data_object): # This handles the top-level document metadata component
                 self.add_to_licenses_frequency_map(data_object["dataLicense"])
@@ -93,7 +93,7 @@ class SPDXParser():
     # since that information can be accessed through other functions
     def parse_document_information(self):
         document = {}
-        if (self.version == "SPDX-2.3" and self.format == "json"): 
+        if ((self.version == "SPDX-2.3" or self.version == "SPDX-2.2") and self.format == "json"): 
             data_object = json.loads(self.data)
             for attribute in data_object:
                 if (attribute == "SPDXID"):
@@ -106,7 +106,7 @@ class SPDXParser():
     
     def parse_file_information(self):
         file_list = []
-        if (self.version == "SPDX-2.3" and self.format == "json"): 
+        if ((self.version == "SPDX-2.3" or self.version == "SPDX-2.2") and self.format == "json"): 
             data_object = json.loads(self.data)
             if ("files" in data_object):
                 for file in data_object["files"]:
@@ -123,7 +123,7 @@ class SPDXParser():
 
     def parse_package_information(self):
         package_list = []
-        if (self.version == "SPDX-2.3" and self.format == "json"): 
+        if ((self.version == "SPDX-2.3" or self.version == "SPDX-2.2") and self.format == "json"): 
             data_object = json.loads(self.data)
             if ('packages' in data_object):
                 for package in data_object['packages']:
@@ -138,7 +138,7 @@ class SPDXParser():
 
     def parse_relationship_information(self):
         relationship_list = []
-        if (self.version == "SPDX-2.3" and self.format == "json"): 
+        if ((self.version == "SPDX-2.3" or self.version == "SPDX-2.2") and self.format == "json"): 
             data_object = json.loads(self.data)
             if ('relationships' in data_object):
                 for relationship in data_object['relationships']:
@@ -174,7 +174,7 @@ class SPDXParser():
     def parse_purl_to_id_map(self):
         
         for component in self.get_components():
-            if (self.version == "SPDX-2.3" and self.format == "json" and 'id' in component and 'externalRefs' in component):
+            if ((self.version == "SPDX-2.3" or self.version == "SPDX-2.2") and self.format == "json" and 'id' in component and 'externalRefs' in component):
                 for ref in component['externalRefs']:
                     if ('referenceType' in ref and ref['referenceType'] == "purl" and 'referenceLocator' in ref):
                         purl = ref['referenceLocator']
