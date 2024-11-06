@@ -2,6 +2,8 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from lib4sbom.parser import SBOMParser
 from sbom_viz.scripts import build_tree
+from django.core.exceptions import PermissionDenied
+
 import json
 
 mock_tree = {
@@ -112,7 +114,10 @@ mock_tree = {
 sbom_parser = SBOMParser()
 data_map = {"SPDXRef-DOCUMENT": {"name": "SPDXRef-DOCUMENT"}}
 sbom_tree = {}
+uploaded = False    # represents whether an SBOM has been uploaded yet
+filename = ""
 
+# DEPRECATED -- will not work with page transitions from navigation bar links. See go_to_page_diagram for its replacement.
 def home(request):
     if request.method == "POST" and len(request.FILES) == 1:
         file = request.FILES["file-select-input"]
@@ -123,7 +128,8 @@ def home(request):
             file_contents += line.decode()+'\n'
         return render(request, 'sbom_viz/display_file.html', {"file_contents": file_contents})
     else:
-        return render(request, 'sbom_viz/index.html')    
+        pass
+        #return render(request, 'sbom_viz/index.html')    
 '''
 Deprecated - previously, fileInputPage.js would submit an HttpResponse to 127... /data.json to retrieve tree.
 Now, it queries 127... /tree/ and receives a JsonResponse.
@@ -152,3 +158,48 @@ def get_data_map(request):
         for i in sbom_parser.get_packages():
             data_map[i["id"]] = i
         return JsonResponse(data=data_map, json_dumps_params={"indent": 4})
+    
+# Indicates if an SBOM has been uploaded
+def is_sbom_uploaded(request):
+    global uploaded
+    return JsonResponse(data={"uploaded": uploaded})
+
+# Endpoint that takes a user back to the home page when the link on the navigation bar is clicked
+def go_to_page_home(request):
+    return render(request, 'sbom_viz/index.html')
+
+# Endpoint that takes a user to the tree diagram page when the link on the navigation bar is clicked
+def go_to_page_diagram(request):
+    global uploaded
+    global filename
+    # If no file has been uploaded yet, and the user tries to force the app to go to the tree diagram page without uploading a file (via the browser search bar), display a 403 Forbidden error.
+    if len(request.FILES) == 0 and not uploaded:
+        raise PermissionDenied()
+    # If the user uploads an SBOM, overwrite the existing SBOM before going to the diagram page.
+    if request.method == "POST" and len(request.FILES) == 1:
+        uploaded = True
+        file = request.FILES["file-select-input"]
+        filename = file.name
+        print(type(file))
+        sbom_parser.parse_file(file.temporary_file_path())
+        file_contents = ""
+        for line in file:
+            file_contents += line.decode()+'\n'
+    # If the user does not upload an SBOM on the home page, but they have previously uploaded an SBOM, go straight to the diagram page and display the old SBOM.
+    return render(request, 'sbom_viz/display_file.html')
+
+# Endpoint that takes a user to the licenses page when the link on the navigation bar is clicked
+def go_to_page_licenses(request):
+    return render(request, 'sbom_viz/licenses.html')
+
+# Endpoint that takes a user to the vulnerabilities page when the link on the navigation bar is clicked
+def go_to_page_vulnerabilities(request):
+    return render(request, 'sbom_viz/vulnerabilities.html')
+
+# Endpoint that takes a user to the PDF Preview page when the link on the navigation bar is clicked
+def go_to_page_pdf_preview(request):
+    return render(request, 'sbom_viz/pdf_preview.html')
+
+def get_filename(request):
+    global filename
+    return JsonResponse(data={"filename":filename})
