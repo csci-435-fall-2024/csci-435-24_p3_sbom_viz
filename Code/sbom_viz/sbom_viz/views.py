@@ -112,7 +112,6 @@ mock_tree = {
     ]
 }
 
-
 sbom_parser = parse_files.SPDXParser()
 data_map = {}
 sbom_tree = {}
