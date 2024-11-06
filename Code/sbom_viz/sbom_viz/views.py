@@ -1,8 +1,11 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
+from scripts.tree_builder import TreeBuilder
+from config.feature_flags import FLAGS
 
 mock_tree = {
-    "name" : "SBOM Root", # artificial root node
+    "sbomId" : "SBOM Root", # artificial root node
+    "nodeId" : 0,
     "type" : "ROOT", # special type for root node, not official SBOM
     "ghost" : False,
     "relationships" : 
@@ -12,6 +15,7 @@ mock_tree = {
     "children" : [
         {
             "name" : "SPDXRef-DOCUMENT",
+            "id" : 1,
             "type" : "DOCUMENT",
             "ghost" : False,
             "relationships" :
@@ -118,4 +122,12 @@ def home(request):
     
 def get_tree(request):
     if request.method == "GET":
-        return JsonResponse(mock_tree)
+        if FLAGS["use_mock_tree"]:
+            return JsonResponse(mock_tree)
+
+        tree_builder = TreeBuilder(sbom_relationships, sbom_components)
+    
+        tree_builder.build_tree()
+
+        return JsonResponse(tree_builder.get_tree_as_dict())
+
