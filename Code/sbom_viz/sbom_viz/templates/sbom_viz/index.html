@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello World</title>
+    <title>SBOM Visualization Tool</title>
     <link rel="stylesheet" type="text/css" href="../../static/sbom_viz/css/styles.css"/>
 </head>
 <body>
@@ -13,9 +13,10 @@
         <a href="#" id="home-link">Home</a>
         <a href="#" id="diagram-link" class="right">Diagram</a>
         <a href="#" id="licenses-link" class="right">Licenses</a>
-        <a href="#" id="dependencies-link" class="right">Dependencies</a>
+        <a href="#" id="vulnerabilities-link" class="right">Vulnerabilities</a>
+        <a href="#" id="pdf-preview-link" class="right">PDF Preview</a>
     </div>
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" action="diagram/">
         {% csrf_token %}
         <div id="title">Upload SBOM File</div>
 
@@ -35,11 +36,26 @@
         <div class="file-select">
             <!-- SBOM File Select Button -->
             <label for="file-select-input">Select File</label>
-            <input type="file" name="file-select-input" id="file-select-input"/>
+            <input type="file" name="file-select-input" id="file-select-input" required/>
         </div>
         
             <!-- SBOM Upload File Button -->
         <button type="submit" id="upload-button">Upload File</button>
     </form>
+    <script>
+        // Enable the navigation links ONLY if a file has already been uploaded.
+        async function setUpNavLinks() {
+            const response = await fetch("http://127.0.0.1:8000/uploaded");
+            const json = await response.json();
+            const uploaded = json["uploaded"];
+            if (uploaded) {
+                document.getElementById("diagram-link").setAttribute("href", "diagram/");
+                document.getElementById("licenses-link").setAttribute("href", "licenses/");
+                document.getElementById("vulnerabilities-link").setAttribute("href", "vulnerabilities/");
+                document.getElementById("pdf-preview-link").setAttribute("href", "pdf-preview/");
+            }
+        }
+        setUpNavLinks();
+    </script>
 </body>
 </html>
