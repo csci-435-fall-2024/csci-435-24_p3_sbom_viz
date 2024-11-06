@@ -2,8 +2,6 @@ from sbom_viz.models.tree_node import TreeNode
 
 class TreeBuilder:
     def __init__(self, sbom_relationships: list, sbom_components: list):
-        print(sbom_relationships)
-        print(sbom_components)
         self.sbom_relationships = sbom_relationships
         self.sbom_components = sbom_components
         self.root = TreeNode("SBOM Root", "ROOT")
@@ -11,7 +9,6 @@ class TreeBuilder:
         self.next_node_id = 0
         self.root_nodes = self.set_root_nodes()
        
-
     def build_tree(self):
         for root_node in self.root_nodes:
             self.recursively_add_children(root_node)
