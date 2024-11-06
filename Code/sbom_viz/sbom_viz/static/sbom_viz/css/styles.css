@@ -118,19 +118,14 @@ rect#node-container.node { /* Large rect node container */
   stroke-width: 2px;
 }
 
-.show-more { /* Both the show-more rect and text */
+.show-more, .show-all { /* Both the show-more rect and text */
   cursor: pointer;
-}
-
-rect.show-more { /* Represents the box around the '+' or '-' */
   fill: lightgray;
   border: 2px solid steelblue;
   border-radius: 2px;
-}
-
-text.show-more{ /* The '+' or '-' text */
   dominant-baseline: middle; /* Helps to center text in rect */
 }
+
 
 /* Sidebar stuff */
 .sidebar {
