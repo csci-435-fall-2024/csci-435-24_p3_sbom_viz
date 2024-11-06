@@ -488,6 +488,17 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
             var o = {x: source.x0+treeBbox.left, y: source.y0}
             return diagonal(o, o)
           });
+
+      linkEnter.append('svg:title')
+      .attr('d', function(d){
+        var o = {x: source.x0+treeBbox.left, y: source.y0}
+        return diagonal(o, o)
+      })
+      .text(function(d){
+        if (d.data.relationship)
+          return d.data.relationship;
+        return d.data.relationship_to_parent;
+      })
     
       // UPDATE
       // Extra styling is from: 

@@ -115,7 +115,7 @@ rect#node-container.node { /* Large rect node container */
 .link { /* Path between nodes */
   fill: none;
   stroke: #ccc;
-  stroke-width: 2px;
+  stroke-width: 3px;
 }
 
 .show-more, .show-all { /* Both the show-more rect and text */
