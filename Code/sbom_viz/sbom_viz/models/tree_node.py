@@ -8,7 +8,8 @@ class TreeNode:
 
     def to_dict(self):
         return {
-            "sbom_id": self.sbom_id,
+            "name" : self.sbom_id,
+            "id": self.sbom_id,
             "node_id": self.node_id,
             "ghost": self.ghost,
             "relationships": self.relationships,

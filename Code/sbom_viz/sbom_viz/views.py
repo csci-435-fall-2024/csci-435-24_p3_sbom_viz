@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-from scripts.tree_builder import TreeBuilder
-from config.feature_flags import FLAGS
-from sbom_viz.scripts import build_tree, parse_files
+from sbom_viz.scripts.tree_builder import TreeBuilder
+from sbom_viz.config.feature_flags import FLAGS
+from sbom_viz.scripts import parse_files, tree_builder
 import json
 
 mock_tree = {
@@ -152,6 +152,8 @@ def json(request):
     
 def get_tree(request):
     if request.method == "GET":
+        global sbom_parser
+
         if FLAGS["use_mock_tree"]:
             return JsonResponse(mock_tree)
 
@@ -159,7 +161,7 @@ def get_tree(request):
     
         tree_builder.build_tree()
 
-        return JsonResponse(tree_builder.get_tree_as_dict())
+        return JsonResponse(data=tree_builder.get_tree_as_dict(), json_dumps_params={"indent": 4})
     
 # This method is called when requesting the URL: localhost:8000/id-data-map
 # This url should only be called after the user submits the file upload form. Otherwise the returned data is nearly empty    
