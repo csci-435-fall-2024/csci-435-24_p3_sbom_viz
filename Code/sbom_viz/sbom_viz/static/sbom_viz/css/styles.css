@@ -255,3 +255,7 @@ rect#node-container.node { /* Large rect node container */
   width: 100%;
   margin: 10px 0px;
 }
+
+.controls {
+  margin-top: 75px;
+}
