@@ -289,7 +289,8 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
     
       // Enter any new modes at the parent's previous position.
       // If this node has children, it has class "node parent"
-      // Otherwise, it has class "node leaf"
+      // Otherwise, it has class "node leaf".
+      // If this node is a ghost node, apply a filter so that it appears red.
       var nodeEnter = node.enter().append('g')
           .attr('class', function(d){
             if (d._children || d.children) return "node parent";
@@ -298,8 +299,11 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           .attr("transform", function(d) {
             return "translate(" + source.x0 + "," + source.y0 + ")";
         })
-        .on('click', click);
-
+        .on('click', click)
+        .style("filter", function(d){
+          if (d.data.ghost)
+            return 'hue-rotate(120deg)';
+        });
       // Add rectangle container for each node
       nodeEnter.append('rect')
           .attr('class', 'node')
