@@ -285,14 +285,21 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
     }
 
     function clearAllCards() {
-      const sidebar = document.getElementById('sidebar');
-      const cards = sidebar.querySelectorAll('.card');
-      cards.forEach(card => sidebar.removeChild(card));
-      
-      // Reset all card states
-      for (let key in cardStates) {
-          cardStates[key] = false;
-      }
+        const sidebar = document.getElementById('sidebar');
+        const cards = sidebar.querySelectorAll('.card');
+        
+        // For each card, reset its node highlight before removing it
+        cards.forEach(card => {
+            const cardName = card.querySelector('h3').textContent;
+            cardStates[cardName] = false;  // Set state to false before toggling highlight
+            toggleNodeHighlight(cardName);  // Reset the node highlight
+            sidebar.removeChild(card);
+        });
+        
+        // Reset all card states
+        for (let key in cardStates) {
+            cardStates[key] = false;
+        }
     }
 
     function update(source) {
