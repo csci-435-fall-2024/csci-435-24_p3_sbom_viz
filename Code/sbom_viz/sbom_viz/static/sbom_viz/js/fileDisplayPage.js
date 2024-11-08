@@ -197,9 +197,13 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
     }
 
     const cardStates = {};
-    function addCard(cardName) {
+    async function addCard(cardName) {
       const sidebar = document.getElementById('sidebar');
       let card = document.getElementById(`card-${cardName}`);
+
+      // Get the data for this node from the id-data map
+      const idToData = await fetch("http://127.0.0.1:8000/id-data-map").then(response => response.json());
+      const nodeData = idToData[cardName] || {};
 
       // If this card is already in the sidebar, then toggle it.
       if (card) {
@@ -210,7 +214,33 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           card = document.createElement('div');
           card.className = 'card';
           card.id = `card-${cardName}`;
-          card.innerHTML = `<h3>${cardName}</h3><p>This is the content for "${cardName}".</p>`;
+
+          // Create card content based on available data
+          let cardContent = `<h3>${cardName}</h3>`;
+          
+          if (nodeData.name) {
+              cardContent += `<p><strong>Name:</strong> ${nodeData.name}</p>`;
+          }
+          if (nodeData.version) {
+              cardContent += `<p><strong>Version:</strong> ${nodeData.version}</p>`;
+          }
+          if (nodeData.licenseConcluded) {
+              cardContent += `<p><strong>License:</strong> ${nodeData.licenseConcluded}</p>`;
+          }
+          if (nodeData.supplier) {
+              cardContent += `<p><strong>Supplier:</strong> ${nodeData.supplier}</p>`;
+          }
+          if (nodeData.downloadLocation) {
+              cardContent += `<p><strong>Download:</strong> ${nodeData.downloadLocation}</p>`;
+          }
+          if (nodeData.checksums) {
+              cardContent += `<p><strong>SHA1:</strong> ${nodeData.checksums.SHA1 || 'N/A'}</p>`;
+          }
+          if (nodeData.copyrightText) {
+              cardContent += `<p><strong>Copyright:</strong> ${nodeData.copyrightText}</p>`;
+          }
+
+          card.innerHTML = cardContent;
           card.onclick = function() { toggleCard(card, cardName); };
           sidebar.appendChild(card);
           cardStates[cardName] = true;
