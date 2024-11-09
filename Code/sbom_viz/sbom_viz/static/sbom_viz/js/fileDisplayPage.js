@@ -51,7 +51,7 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
     // append the svg object to the body of the page
     // appends a 'group' element to 'svg'
     // moves the 'group' element to the top left margin
-    var svg = d3.select("body").append("svg")
+    var svg = d3.select("#tree-svg-container").append("svg")
     .attr("id", "tree-svg")
     .attr("width", width + margin.right + margin.left)
         .attr("height", height + margin.top + margin.bottom)
@@ -84,25 +84,129 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
         
         update(root);
         resizeCanvas(treemap(root), node_width, node_height);
-        
-        // Collapse the node and all it's children
-        function collapse(d) {
-            if(d.children) {
-                d._children = d.children
-                d._children.forEach(collapse)
-                d.children = null
-            }
-        }
     });
+
+    // Collapse the node and all its children
+    function collapse(d) {
+      if (d.children) {
+          d._children = d.children
+          d._children.forEach(collapse)
+          d.children = null
+      }
+      else if (d._children) {
+        d._children.forEach(collapse);
+        d.children = null;
+      }
+      resizeCanvas(treemap(root), node_width, node_height); // could be unnecessary
+    }
+
+    // Expand this node and its children
+    // d._children is hidden children,
+    // d.children is visible children
+    function expand(d){
+      var children = (d.children) ? d.children : d._children;
+      if (d._children) {        
+          d.children = d._children;
+          d._children = null;       
+      }
+      if(children)
+        children.forEach(expand);
+      resizeCanvas(treemap(root), node_width, node_height); // could be unnecessary
+    }
+
+    /*
+     * Whether or not this node has visible children,
+     * go through its children and try to collapse them.
+     */
+    function collapseAllNodes(start = root){
+      if (start.children) 
+        start.children.forEach(collapse);
+      else
+        start._children.forEach(collapse);
+      collapse(start);
+      update(start);
+      setAllPlusMinusButton(); // these nodes are now collapsed, so set their buttons to '+'
+    }
+
+    function expandAllNodes(start = root){
+      expand(start);
+      update(start);
+      setAllPlusMinusButton(); // these nodes are now expanded, so set their buttons to '-'
+    }
+
+    /* 
+     * 
+     * Return true if a collapsed child exists
+     */
+    function collapsedChildExists(start){
+
+      if (!start.children && !start._children)
+        return;
+
+      if (start._children) // the node has collapsed children
+        return true;
+
+      if (start.children){
+        for (let child of start.children){
+          if (collapsedChildExists(child))
+            return true;
+        }
+      }
+      return false;
+    }
+
+    /*
+     * Find all nodes that are parents 
+     * (these are the only nodes that have the plus/minus button).
+     * If the node does not have visible children, then set the text 
+     * in the bottom right to '+' so the user knows to expand the node's children.
+     * Otherwise, set the text to '-' so the user knows they can collapse 
+     * this node's children.
+     * !! This function serves both the simple 'show-more' button and  !!
+     * !! the larger 'show-all' button (they are in order in the code) !!
+     */
+    function setAllPlusMinusButton(){
+      d3.selectAll('.node.parent')
+        .each(function(){
+
+          // find the '+' or '-'
+          d3.select(this).select("text.show-more")
+            .text(function(node){
+
+              // all children are 'hidden', none are visible -> this node's children are contracted
+              if (node._children && (!node.children))
+                return '+';
+              
+              // node's children are expanded
+              else 
+                return '-';
+            })
+
+          d3.select(this).select("text.show-all")
+            .text(function(node){
+
+              // all children are 'hidden', none are visible -> this node's children are contracted
+              if (collapsedChildExists(node))
+                return '+';
+              
+              // node's children are expanded
+              else 
+                return '-';
+            })
+      });
+    }
+
     const cardStates = {};
     function addCard(cardName) {
       const sidebar = document.getElementById('sidebar');
       let card = document.getElementById(`card-${cardName}`);
 
+      // If this card is already in the sidebar, then toggle it.
       if (card) {
           toggleCard(card, cardName);
+      
+      // Otherwise, Create a new card
       } else {
-          // Create new card
           card = document.createElement('div');
           card.className = 'card';
           card.id = `card-${cardName}`;
@@ -110,6 +214,7 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           card.onclick = function() { toggleCard(card, cardName); };
           sidebar.appendChild(card);
           cardStates[cardName] = true;
+          toggleNodeHighlight(cardName);
       }
     }
 
@@ -127,6 +232,26 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           // First time the card is clicked
           cardStates[cardName] = true;
       }
+      toggleNodeHighlight(cardName);
+    }
+
+    // Select all node labels. Filter to 
+    // the title that has the same label as this card. (*Not using label because it may be truncated*)
+    // Select the previous previous sibling of this label (the rect that presents as the node).
+    // Change the border of this rect, if this node is present in the sidebar.
+    function toggleNodeHighlight(cardName){
+        d3.selectAll('g.node > title') 
+          .filter(function() { 
+            return d3.select(this).text() == cardName; 
+          })
+          .each(function(){
+            d3.select(this)            // -> title element
+            .node()                    // allow for previousElementSibling call
+            .previousElementSibling    // -> #node-label
+            .previousElementSibling    // -> #node-container
+            .style.stroke = 
+            (cardStates[cardName]) ? "blue" : "steelblue"
+          });
     }
 
     function clearAllCards() {
@@ -210,6 +335,8 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           .text(function(d){
             return d.data.name;
           });
+
+        // ****************** ".show-more" button section ***************************
      
         // Append a button that will show more 
         // information about this node in the sidebar. 
@@ -221,7 +348,6 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           showmoreY = rectHeight-47;
         nodeEnter.append('rect')
             .attr('class','show-more')
-            .attr('id', 'more-info')
             .attr("height", buttonHeight)
             .attr("width", buttonWidth)
             .attr("x", showmoreX) 
@@ -250,12 +376,8 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
       d3.selectAll('.show-more')
           .on('click', function(e, d){
             e.stopPropagation();
-            if(this.tagName == 'text'){
-              d3.select(this).text(d3.select(this).text() == '+' ? '-' : '+');
-            }
-            else {
-              d3.select(this.nextSibling).text(d3.select(this.nextSibling).text() == '+' ? '-' : '+');
-            }
+
+            // not able to use the expand() or collapse() functions here because they are recursive
             if (d.children) {
               d._children = d.children;
               d.children = null;
@@ -264,8 +386,53 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
               d._children = null;
             }
             update(d);
+            setAllPlusMinusButton(); // update BOTH plus minus ('show-more' and 'show-all')
             resizeCanvas(treeData, node_width, node_height);
           });
+
+      // ****************** ".show-all" button section ***************************
+      // When clicking this button, toggle between recursively expanding / contracting
+      // ALL children nodes of this node (not just the next level)
+
+      // from 'show-more' above: 
+          // buttonWidth, buttonHeight
+          // showmoreX, showmoreY
+          var showallX = showmoreX-rectWidth+buttonWidth+11,
+          showallY = showmoreY+7,
+          radius = buttonHeight/2;
+      nodeEnter.append('circle')
+          .attr('class','show-all')
+          .attr("r", radius)
+          .attr("cx", showallX) 
+          .attr("cy", showallY)
+          .attr('rx', '5');
+      
+      nodeEnter.append('text')
+          .attr('class','show-all')
+          .attr("x", showallX)
+          .attr("y", showallY)
+          .text('+') 
+          .attr('text-anchor', 'middle');
+
+      // Select all leaf nodes and remove their 'show-all' button
+      d3.selectAll(".node.leaf").selectAll(".show-all").remove();
+
+      // When clicked, evaluate if the node should expand or collapse
+      // The changing of the symbol is handled down the line in
+      // SetPlusMinusButton(node)
+      d3.selectAll('.show-all')
+          .on('click', function(e, d){
+            e.stopPropagation();
+
+            // check the state of this node (should we expand, or should we collapse)
+            if (collapsedChildExists(d))
+              expandAllNodes(d);
+            else 
+              collapseAllNodes(d);
+          });
+
+      // ****************** nodeUpdate section ***************************
+
 
       // UPDATE
       // Extra styling is from:
@@ -274,7 +441,7 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
         .attr("fill", "#fff")
         .attr("stroke", "steelblue")
         .attr("stroke-width", "3px;")
-        .style('font', '12px sans-serif');
+        .style('font', '12px');
     
       // Transition to the proper position for the node
       nodeUpdate.transition()
@@ -321,6 +488,17 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
             var o = {x: source.x0+treeBbox.left, y: source.y0}
             return diagonal(o, o)
           });
+
+      linkEnter.append('svg:title')
+      .attr('d', function(d){
+        var o = {x: source.x0+treeBbox.left, y: source.y0}
+        return diagonal(o, o)
+      })
+      .text(function(d){
+        if (d.data.relationship)
+          return d.data.relationship;
+        return d.data.relationship_to_parent;
+      })
     
       // UPDATE
       // Extra styling is from: 
@@ -361,10 +539,15 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
         return path
       }
 
-      // Toggle children on click.
+      // Add or remove card in sidebar when 
+      // corresponding node is clicked
       function click(event, d) {
         addCard(d.data.name);
       }
+
+      // This fixes the issue of the root node  
+      // having '+' button, despite being expanded
+      setAllPlusMinusButton();
     }
 
     // Resize the canvas to fit the tree
@@ -423,3 +606,5 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
 
 // Expose clearAllCards to the global scope
 window.clearAllCards = clearAllCards;
+window.collapseAllNodes = collapseAllNodes;
+window.expandAllNodes = expandAllNodes;

@@ -7,10 +7,21 @@
     <title>Display File</title>
 </head>
 <body>
+    <div class="header">
+        <a href="http://127.0.0.1:8000/" id="home-link">Home</a>
+        <a href="#" id="diagram-link" class="right">Diagram</a>
+        <a href="http://127.0.0.1:8000/licenses" id="licenses-link" class="right">Licenses</a>
+        <a href="http://127.0.0.1:8000/vulnerabilities" id="vulnerabilities-link" class="right">Vulnerabilities</a>
+        <a href="http://127.0.0.1:8000/pdf-preview" id="pdf-preview-link" class="right">PDF Preview</a>
+    </div>
     <div class="sidebar" id="sidebar">
         <h2>Sidebar</h2>
         <button class="clear-all-btn" onclick="clearAllCards()">Clear All</button>
         <!-- Cards will be added here -->
+    </div>
+    <div class="controls">
+        <button id="expand-all" onclick="expandAllNodes()">Expand All Nodes</button>
+        <button id="collapse-all" onclick="collapseAllNodes()">Collapse All Nodes</button>
     </div>
     <!-- <script src="../../static/sbom_viz/js/fileDisplayPage.js" type="module"></script> -->
     <script>
@@ -19,5 +30,6 @@
             new module.FileDisplayPage();
         });
     </script>
+    <div id="tree-svg-container"></div> <!-- For positioning of the tree relative to the navigation bar -->
 </body>
 </html>

@@ -1,5 +1,5 @@
 from lib4sbom.parser import SBOMParser
-
+from sbom_viz.scripts.parse_files import SPDXParser
 relationship_graph = {}
 id_data_map = {}
 set_of_added_ids = set()
