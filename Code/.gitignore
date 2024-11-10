@@ -18,5 +18,4 @@ db.sqlite3
 db.sqlite3
 
 # Security 
-sec_config.txt
-security_scanning_tools/
+executables/
