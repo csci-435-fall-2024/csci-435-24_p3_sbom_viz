@@ -2,8 +2,9 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from sbom_viz.scripts.tree_builder import TreeBuilder
 from sbom_viz.config.feature_flags import FLAGS
-from sbom_viz.scripts import parse_files, tree_builder
+from sbom_viz.scripts import parse_files, tree_builder, security
 import json
+import os
 
 mock_tree = {
     "sbomId" : "SBOM Root", # artificial root node
@@ -219,3 +220,11 @@ def go_to_page_pdf_preview(request):
 def get_filename(request):
     global filename
     return JsonResponse(data={"filename":filename})
+
+# Endpoint that returns the security information needed for the vulnerabilites page 
+def get_sec_info(request):
+    global sbom_parser
+    if uploaded:
+        sec_output=security.get_security_output(sbom_parser)
+        if request.method == "GET":
+            return JsonResponse(data=sec_output, json_dumps_params={"indent": 4})
