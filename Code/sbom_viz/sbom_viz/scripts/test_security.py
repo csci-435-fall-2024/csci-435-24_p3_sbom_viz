@@ -1,17 +1,26 @@
 import unittest
 from security import *
+from parse_files import *
 
 class Security_Tester(unittest.TestCase):
 
-    def setUp(self):
-        scan_output=run_security_scan("../../Artifacts/Examples/Erroneous SBOMs/sampleSPDX.json", get_sec_config()["trivy_path"])
-        self.__trivy_sec_out=scan_output
+    @classmethod
+    def setUpClass(self):
+        file_path="../../Artifacts/Examples/Erroneous SBOMs/sampleSPDX.json"
+        with open(file_path, 'r') as file:
+            sbom_data=file.read()
+            write_sbom(sbom_data, 'sbom_test.json')
 
+        scan_output=run_security_scan("sbom_test.json")
+        self.__trivy_sec_out=scan_output
+        self.sbom_parser=SPDXParser()
+        self.sbom_parser.parse_file(file_path)
+        self.trivy_output=reformat_trivy_output(self.__trivy_sec_out, self.sbom_parser)
+        
     def test_find_corresponding_sbom_component(self):
         purl="pkg:npm/debug@4.1.1"
-        sbom_file_path="../../Artifacts/Examples/Erroneous SBOMs/sampleSPDX.json"
         expected="SPDXRef-npm-debug-4.1.1"
-        actual=find_corresponding_sbom_component(purl, sbom_file_path)
+        actual=find_corresponding_sbom_component(purl, self.sbom_parser)
         self.assertEqual(expected, actual)
 
     def test_make_vuln_dict(self):
@@ -78,12 +87,22 @@ class Security_Tester(unittest.TestCase):
         for key in expected_2.keys():
             self.assertEqual(expected_2[key], actual_2[key])
         
-
     def test_reformat_trivy_output(self):
-        expected_severity_distr={"CRITICAL": 1, "HIGH":2, "MEDIUM": 8, "LOW": 3, "NONE": 0}
-        actual_severity_distr=reformat_trivy_output(self.__trivy_sec_out, "../../Artifacts/Examples/Erroneous SBOMs/sampleSPDX.json")["Summary"]["SeverityDistr"]
+        expected_severity_distr=[{"name":"Critical", "count": 1},
+                                 {"name":"High", "count":2},
+                                 {"name":"Medium", "count": 8},
+                                 {"name":"Low", "count": 3},
+                                 {"name":"None", "count": 0}]
+        actual_severity_distr=self.trivy_output["Summary"]["SeverityDistr"]
         self.assertEqual(expected_severity_distr, actual_severity_distr)
         #write test for top 10
+
+    @classmethod
+    def tearDownClass(self):
+        # Code to clean up after all tests (only once)
+        print("Starting tearing down process")
+        filename='sbom_test.json'
+        os.remove(filename)
 
 # Run the tests
 if __name__ == "__main__":
