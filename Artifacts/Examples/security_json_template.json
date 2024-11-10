@@ -1,11 +1,9 @@
 {"Summary":{
-    "SeverityDistr":{
-        "CRITICAL": 0,
-        "HIGH": 0,
-        "MEDIUM": 0,
-        "LOW": 0,
-        "NONE": 0
-    },
+    "SeverityDistr":[{"name":"Critical", "count":0}, 
+                    {"name":"High", "count":0}, 
+                    {"name":"Medium", "count":0}, 
+                    {"name":"Low", "count":0},
+                    {"name":"None", "count":0}],
     "Top_10":{
         "CVE_ID": {"SBOM_ID": "",
                     "SeveritySource":"",
