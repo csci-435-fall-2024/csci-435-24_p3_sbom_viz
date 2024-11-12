@@ -49,10 +49,17 @@
             const json = await response.json();
             const uploaded = json["uploaded"];
             if (uploaded) {
+                // Set destinations
                 document.getElementById("diagram-link").setAttribute("href", "diagram/");
                 document.getElementById("licenses-link").setAttribute("href", "licenses/");
                 document.getElementById("vulnerabilities-link").setAttribute("href", "vulnerabilities/");
                 document.getElementById("pdf-preview-link").setAttribute("href", "pdf-preview/");
+            } else {
+                // Set styling
+                document.getElementById("diagram-link").classList.add("disabled-nav-link");
+                document.getElementById("licenses-link").classList.add("disabled-nav-link");
+                document.getElementById("vulnerabilities-link").classList.add("disabled-nav-link");
+                document.getElementById("pdf-preview-link").classList.add("disabled-nav-link");
             }
         }
         setUpNavLinks();
