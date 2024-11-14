@@ -13,7 +13,14 @@ export class FileDisplayPage {
 
 new FileDisplayPage()
 
-let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => response.json())
+let idToData = {};
+
+// Update the initial fetch to populate the global variable
+fetch("http://127.0.0.1:8000/id-data-map")
+    .then(response => response.json())
+    .then(data => {
+        idToData = data;
+    });
 
       /*
        * Credit: 
@@ -197,29 +204,33 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
     }
 
     const cardStates = {};
-    async function addCard(cardName) {
-      const sidebar = document.getElementById('sidebar');
-      let card = document.getElementById(`card-${cardName}`);
-
+    async function addCard(node) {
       // Get the data for this node from the id-data map
-      const idToData = await fetch("http://127.0.0.1:8000/id-data-map").then(response => response.json());
-      const nodeData = idToData[cardName] || {};
+      const nodeData = idToData[node.data.id] || {};
+      // Use name if available, otherwise use id
+      const displayName = nodeData.name || node.data.id;
+
+      const sidebar = document.getElementById('sidebar');
+      let card = document.getElementById(`card-${displayName}`);
 
       // If this card is already in the sidebar, then toggle it.
       if (card) {
-          toggleCard(card, cardName);
+          toggleCard(card, displayName);
       
       // Otherwise, Create a new card
       } else {
           card = document.createElement('div');
           card.className = 'card';
-          card.id = `card-${cardName}`;
+          card.id = `card-${displayName}`;
 
           // Create card content based on available data
-          let cardContent = `<h3>${cardName}</h3>`;
+          let cardContent = `<h3>${displayName}</h3>`;
           
           if (nodeData.name) {
               cardContent += `<p><strong>Name:</strong> ${nodeData.name}</p>`;
+          }
+          if (nodeData.id) {
+              cardContent += `<p><strong>ID:</strong> ${nodeData.id}</p>`;
           }
           if (nodeData.version) {
               cardContent += `<p><strong>Version:</strong> ${nodeData.version}</p>`;
@@ -241,10 +252,10 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           }
 
           card.innerHTML = cardContent;
-          card.onclick = function() { toggleCard(card, cardName); };
+          card.onclick = function() { toggleCard(card, displayName); };
           sidebar.appendChild(card);
-          cardStates[cardName] = true;
-          toggleNodeHighlight(cardName);
+          cardStates[displayName] = true;
+          toggleNodeHighlight(displayName);
       }
     }
 
@@ -271,14 +282,15 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
     // Change the border of this rect, if this node is present in the sidebar.
     function toggleNodeHighlight(cardName){
         d3.selectAll('g.node > title') 
-          .filter(function() { 
-            return d3.select(this).text() == cardName; 
+          .filter(function(d) { 
+            const nodeData = idToData[d.data.id] || {};
+            return nodeData.name === cardName || d.data.id === cardName;
           })
           .each(function(){
-            d3.select(this)            // -> title element
-            .node()                    // allow for previousElementSibling call
-            .previousElementSibling    // -> #node-label
-            .previousElementSibling    // -> #node-container
+            d3.select(this)            
+            .node()                    
+            .previousElementSibling    
+            .previousElementSibling    
             .style.stroke = 
             (cardStates[cardName]) ? "blue" : "steelblue"
           });
@@ -302,8 +314,7 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
         }
     }
 
-    function update(source) {
-    
+    async function update(source) {
       // Assigns the x and y position for the nodes
       var treeData = treemap(root);
 
@@ -359,11 +370,15 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
           .attr("text-anchor", "middle")
           .attr("cursor", "pointer")
           .text(function(d) { 
-            if(d.data.name.length > maxLabelLength){
-              return d.data.name.substring(0,maxLabelLength)+"...";
+            const nodeData = idToData[d.data.id];
+            const nodeName = nodeData?.name || d.data.id;
+            if(nodeName.length > maxLabelLength){
+              return nodeName.substring(0,maxLabelLength)+"...";
             }
-            else return d.data.name; 
-            });
+            else{
+              return nodeName; 
+            }
+    });
 
       // When the user hovers over a node, 
       // show a tooltip with the full 
@@ -579,7 +594,7 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
       // Add or remove card in sidebar when 
       // corresponding node is clicked
       function click(event, d) {
-        addCard(d.data.name);
+        addCard(d);
       }
 
       // This fixes the issue of the root node  
