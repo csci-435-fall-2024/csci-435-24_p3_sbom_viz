@@ -65,7 +65,7 @@ import { getLicenseData } from './license_data.js';
 
 async function setUpTable() {
 
-  const data = await getLicenseData();
+  const data = (await getLicenseData()).map(entry => ({"license name": entry["license name"], "count": entry["count"]}));
   console.log(data);
 
   // Calculate percentage composition for each license of total
@@ -76,7 +76,7 @@ async function setUpTable() {
 
   // render the table
   data.sort((a,b) => b.count - a.count); // sort by highest value
-  tabulate((data.filter(license => license["license name"] !== "other")).slice(0,10), ['license name', 'version', 'count', 'composition']); // table with all columns
+  tabulate((data.filter(license => license["license name"] !== "other")).slice(0,10), ['license name', 'count', 'composition']); // table with all columns
 
   // Count the number of distinct licenses
   let num_licenses = data.reduce((acc, license) => ((license["license name"] !== "other") ? acc + 1 : acc), 0); // count all rows except for the "other" row, if it is present
