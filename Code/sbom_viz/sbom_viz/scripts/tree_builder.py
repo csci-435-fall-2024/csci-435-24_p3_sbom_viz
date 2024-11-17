@@ -5,7 +5,7 @@ class TreeBuilder:
         self.sbom_relationships = sbom_relationships
         self.sbom_components = sbom_components
         self.root = TreeNode("SBOM Root", "ROOT")
-        self.built_sbom_ids = []
+        self.built_sbom_ids = set()
         self.next_node_id = 0
         self.root_nodes = self.set_root_nodes()
        
@@ -19,7 +19,7 @@ class TreeBuilder:
         for relationship in child_relationships:
             new_node = self.add_node(parent_node, relationship["target_id"], relationship["type"])
 
-            if not new_node.ghost:
+            if new_node and not new_node.ghost:
                 self.recursively_add_children(new_node)
 
     def add_node(self, parent_node: TreeNode, child_sbom_id: int, relationship_type: str):
@@ -35,13 +35,16 @@ class TreeBuilder:
         if child_sbom_id in self.built_sbom_ids:
             ghost = True
 
-        new_node = TreeNode(child_sbom_id, self.get_next_node_id(), ghost)
+        current_children_ids = [n.sbom_id for n in parent_node.children]
+        
+        if child_sbom_id not in current_children_ids:
+            new_node = TreeNode(child_sbom_id, self.get_next_node_id(), ghost)
 
-        parent_node.children.append(new_node)
+            parent_node.children.append(new_node)
 
-        self.built_sbom_ids.append(child_sbom_id)
+            self.built_sbom_ids.add(child_sbom_id)
 
-        return new_node
+            return new_node
 
     def set_root_nodes(self):
         all_components = set(component["id"] for component in self.sbom_components)
