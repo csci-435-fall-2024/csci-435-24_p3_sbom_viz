@@ -38,5 +38,8 @@ class RelationshipMapBuilder:
         for child in node.children:
             self.dfs(child, visited)
 
+    '''
+    Returns relationship map as a dictionary
+    '''
     def get_map_as_dict(self) -> dict:
         return self.relationship_map.get_dict()
