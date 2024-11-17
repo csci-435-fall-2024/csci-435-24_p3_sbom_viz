@@ -7,7 +7,7 @@ class TreeNode:
 
     Each node has an sbom_id (shared between ghosts) and node_id (unique)
     '''
-    def __init__(self, sbom_id: int, node_id: int, ghost=False):
+    def __init__(self, sbom_id: int, node_id: int, ghost=False) -> None:
         self.sbom_id = sbom_id
         self.node_id = node_id
         self.ghost = ghost
@@ -17,7 +17,7 @@ class TreeNode:
     '''
     Recursively returns itself and all children as a dictionary
     '''
-    def to_dict(self):
+    def to_dict(self) -> dict:
         return {
             "name" : self.sbom_id,
             "id": self.sbom_id,

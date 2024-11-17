@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from sbom_viz.scripts.tree_builder import TreeBuilder
+from sbom_viz.scripts.relationship_map_builder import RelationshipMapBuilder
 from sbom_viz.config.feature_flags import FLAGS
-from sbom_viz.scripts import parse_files, tree_builder
+from sbom_viz.scripts import parse_files
+from typing import Optional
 import json
 
 mock_tree = {
@@ -114,7 +116,7 @@ mock_tree = {
 
 sbom_parser = parse_files.SPDXParser()
 data_map = {}
-sbom_tree = {}
+tree_builder: Optional[TreeBuilder] = None
 uploaded = False    # represents whether an SBOM has been uploaded yet
 filename = ""
 
@@ -154,9 +156,13 @@ def json(request):
     return render(request, 'sbom_viz/data.json')
 '''
     
+'''
+Builds and returns the Tree
+'''
 def get_tree(request):
     if request.method == "GET":
         global sbom_parser
+        global tree_builder
 
         if FLAGS["use_mock_tree"]:
             return JsonResponse(mock_tree)
@@ -166,6 +172,19 @@ def get_tree(request):
         tree_builder.build_tree()
 
         return JsonResponse(data=tree_builder.get_tree_as_dict(), json_dumps_params={"indent": 4})
+
+'''
+Builds and returns the Relationship Map
+''' 
+def get_relationship_map(request):
+    if request.method == "GET":
+        global tree_builder
+        
+        relationship_map_builder = RelationshipMapBuilder(tree_builder.get_root_node())
+
+        relationship_map_builder.build_map()
+
+        return JsonResponse(data=relationship_map_builder.get_map_as_dict(), json_dumps_params={"indent": 4})
     
 # This method is called when requesting the URL: localhost:8000/id-data-map
 # This url should only be called after the user submits the file upload form. Otherwise the returned data is nearly empty    

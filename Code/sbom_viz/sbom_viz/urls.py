@@ -28,6 +28,7 @@ urlpatterns = [
     path("pdf-preview/", views.go_to_page_pdf_preview, name="pdf_preview"),
     # Endpoints for data transfer
     path("tree/", views.get_tree, name = "get-tree"),
+    path("relationship-map/", views.get_relationship_map, name = "get-relationship-map"),
     path("id-data-map/", views.get_data_map, name = "get-map"),
     path("uploaded/", views.is_sbom_uploaded, name="uploaded"),
     path("filename/", views.get_filename, name="get-filename"),
