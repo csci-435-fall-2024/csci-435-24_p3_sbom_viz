@@ -1,18 +1,33 @@
 from sbom_viz.models.tree_node import TreeNode
 
+'''
+TreeBuilder is responsible for building the tree from the
+sbom_relationships and sbom_components produced by parsing
+'''
 class TreeBuilder:
+    '''
+    Constructor for TreeBuilder
+    
+    Sets the root nodes of the tree
+    '''
     def __init__(self, sbom_relationships: list, sbom_components: list):
         self.sbom_relationships = sbom_relationships
         self.sbom_components = sbom_components
-        self.root = TreeNode("SBOM Root", "ROOT")
+        self.root = TreeNode("SBOM Root", 0)
         self.built_sbom_ids = set()
-        self.next_node_id = 0
+        self.next_node_id = 1
         self.root_nodes = self.set_root_nodes()
-       
+    
+    '''
+    Builds the rest of the tree recursively building off of the root nodes
+    '''
     def build_tree(self):
         for root_node in self.root_nodes:
             self.recursively_add_children(root_node)
 
+    '''
+    Used to add children of a node and then its children recursively until all leaf nodes are met
+    '''
     def recursively_add_children(self, parent_node: TreeNode):
         child_relationships = [relationship for relationship in self.sbom_relationships if relationship["source_id"] == parent_node.sbom_id]
 
@@ -22,6 +37,9 @@ class TreeBuilder:
             if new_node and not new_node.ghost:
                 self.recursively_add_children(new_node)
 
+    '''
+    Adds a single node and it's relationship to it's parent
+    '''
     def add_node(self, parent_node: TreeNode, child_sbom_id: int, relationship_type: str):
         if parent_node.ghost:
             return
@@ -46,6 +64,9 @@ class TreeBuilder:
 
             return new_node
 
+    '''
+    Sets the root nodes of the tree (nodes without parents)
+    '''
     def set_root_nodes(self):
         all_components = set(component["id"] for component in self.sbom_components)
         children = set(relationship["target_id"] for relationship in self.sbom_relationships)
@@ -58,9 +79,15 @@ class TreeBuilder:
         
         return root_nodes
 
+    '''
+    Returns the tree as a Dictionary
+    '''
     def get_tree_as_dict(self):
         return self.root.to_dict()
     
+    '''
+    Simple generator for producing the next node_id (each is unique)
+    '''
     def get_next_node_id(self):
         current_id = self.next_node_id
         self.next_node_id += 1
