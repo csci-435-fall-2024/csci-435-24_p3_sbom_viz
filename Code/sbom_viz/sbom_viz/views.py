@@ -219,3 +219,7 @@ def go_to_page_pdf_preview(request):
 def get_filename(request):
     global filename
     return JsonResponse(data={"filename":filename})
+
+def get_license(request):
+    global sbom_parser
+    return JsonResponse(data=sbom_parser.get_license_information(), json_dumps_params={"indent": 4})
