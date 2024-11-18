@@ -1,5 +1,7 @@
 import "https://d3js.org/d3.v7.min.js";
+import { getVulnerabilityTableData } from "./vulnerability_data.js";
 
+/*
 var data = [
     { "component name" : 'software_component1', 'version':'1.0', "score" : 4 },
     { "component name" : 'software_component2', 'version':'1.0', "score" : 5 },
@@ -13,6 +15,7 @@ var data = [
     { "component name" : 'software_component10', 'version':'1.0', "score" : 0 },
     { "component name" : 'software_component11', 'version':'1.0', "score" : 9 }
   ]
+*/
 
   /*
    * From :
@@ -21,7 +24,7 @@ var data = [
    *    https://codepen.io/blackjacques/pen/RYVpKZ
    */
 
-  function tabulate(data, columns) {
+async function tabulate(data, columns) {
 	var table = d3.select('#vulner-table').append('table')
         .style("border", "2px black solid")
         .style("border-collapse", "collapse");
@@ -68,9 +71,15 @@ var data = [
   return table;
 }
 
+
+getVulnerabilityTableData().then(s => {
+  tabulate(s, ['component_name', 'cve_id', 'score', 'severity', 'description']); // table with all columns
+  });
+
+
 // render the table
-data.sort((a,b) => b.score - a.score); // sort by highest value
-tabulate(data.slice(0,10), ['component name', 'version', 'score']); // table with all columns
+//data.sort((a,b) => b.score - a.score); // sort by highest value
+//tabulate(data, ['SBOM_ID', 'SeveritySource', 'Title', 'Displayed_CVSS']); // table with all columns
 
 /*
 if data comes in as csv:

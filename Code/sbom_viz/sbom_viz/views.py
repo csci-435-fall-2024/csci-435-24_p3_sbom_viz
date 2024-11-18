@@ -3,9 +3,10 @@ from django.http import HttpResponse, JsonResponse
 from sbom_viz.scripts.tree_builder import TreeBuilder
 from sbom_viz.scripts.relationship_map_builder import RelationshipMapBuilder
 from sbom_viz.config.feature_flags import FLAGS
-from sbom_viz.scripts import parse_files
+from sbom_viz.scripts import parse_files, tree_builder, security
 from typing import Optional
 import json
+import os
 
 mock_tree = {
     "sbomId" : "SBOM Root", # artificial root node
@@ -246,6 +247,14 @@ def get_filename(request):
     global filename
     return JsonResponse(data={"filename":filename})
 
+# Endpoint that returns the security information needed for the vulnerabilites page 
+def get_sec_info(request):
+    global sbom_parser
+    if uploaded:
+        sec_output=security.get_security_output(sbom_parser)
+        if request.method == "GET":
+            return JsonResponse(data=sec_output, json_dumps_params={"indent": 4})
+            
 def get_license(request):
     global sbom_parser
     return JsonResponse(data=sbom_parser.get_license_information(), json_dumps_params={"indent": 4})

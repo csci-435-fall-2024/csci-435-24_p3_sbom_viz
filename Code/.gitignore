@@ -16,3 +16,6 @@ db.sqlite3
 
 # Sqlite database
 db.sqlite3
+
+# Security 
+executables/
