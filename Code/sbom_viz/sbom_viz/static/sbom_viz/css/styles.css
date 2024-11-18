@@ -259,3 +259,11 @@ rect#node-container.node { /* Large rect node container */
 .controls {
   margin-top: 75px;
 }
+
+.disabled-nav-link {
+  color: #777777;
+}
+
+.disabled-nav-link:hover {
+  cursor: default;
+}
