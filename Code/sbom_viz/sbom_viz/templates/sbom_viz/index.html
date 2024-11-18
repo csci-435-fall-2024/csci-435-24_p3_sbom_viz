@@ -39,6 +39,8 @@
             <input type="file" name="file-select-input" id="file-select-input" required/>
         </div>
         
+        <div id="filename-display"></div>
+
             <!-- SBOM Upload File Button -->
         <button type="submit" id="upload-button">Upload File</button>
     </form>
@@ -55,7 +57,28 @@
                 document.getElementById("pdf-preview-link").setAttribute("href", "pdf-preview/");
             }
         }
+        // On page initialization, display the name of the file if it has already been uploaded on a previous visit to the page.
+        async function setUpFileName() {
+            const response_uploaded = await fetch("http://127.0.0.1:8000/uploaded");
+            const json_uploaded = await response_uploaded.json();
+            const uploaded = json_uploaded["uploaded"];
+            if (uploaded) {
+                const response_filename = await fetch("http://127.0.0.1:8000/filename");
+                const json_filename = await response_filename.json();
+                const filename = json_filename["filename"];
+                document.getElementById("filename-display").innerHTML = `<div class="bold centered">Selected File:</div>${filename}`;
+            }
+        }
         setUpNavLinks();
+        setUpFileName();
+        // When a new file has been uploaded, change the text of the filename field to display the new file to be uploaded
+        document.getElementById("file-select-input").addEventListener("change", (e) => {
+            if (e.target.files.length == 0) { // If the file selection was removed,
+                setUpFileName();              // reset the current SBOM file to the one currently uploaded, or no file if none has been uploaded.
+            } else {
+                document.getElementById("filename-display").innerHTML = `<div class="bold centered">Selected File:</div>${e.target.files[0].name}`;   // If a file was selected, display the name of the selected file to the user
+            }
+        })
     </script>
 </body>
 </html>
