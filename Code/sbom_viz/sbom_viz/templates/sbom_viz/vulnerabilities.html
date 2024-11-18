@@ -8,7 +8,8 @@
     <title>Vulnerabilities</title>
 </head>
 <body>
-            
+    
+    <script type="module" src="../../static/sbom_viz/js/vulnerability_data.js"></script>
     <script type="module" src="../../static/sbom_viz/js/vulnerabilities_pie.js"></script>
     <script type="module" src="../../static/sbom_viz/js/vulnerabilities_table.js"></script>
 
@@ -35,6 +36,7 @@
             <div class="vulner-table-container">
                 <h2>Top 10 Vulnerabilities by CVSS Score</h2>
                 <div id="vulner-table" class="table"></div>
+                <a id="vuln-documentation-link" href="http://127.0.0.1:8000/sec-info/" target="_" class="hyperlink">See more about these vulnerabilities</a>
             </div>
         </div>
     </div>

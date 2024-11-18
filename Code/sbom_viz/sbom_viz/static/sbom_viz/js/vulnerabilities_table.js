@@ -24,7 +24,7 @@ var data = [
    *    https://codepen.io/blackjacques/pen/RYVpKZ
    */
 
-function tabulate(data, columns) {
+async function tabulate(data, columns) {
 	var table = d3.select('#vulner-table').append('table')
         .style("border", "2px black solid")
         .style("border-collapse", "collapse");
