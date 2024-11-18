@@ -14,6 +14,13 @@ export class FileDisplayPage {
 new FileDisplayPage()
 
 let idToData = {};
+let relationshipMap = {};
+
+fetch("http://127.0.0.1:8000/relationship-map")
+    .then(response => response.json())
+    .then(data => {
+        relationshipMap = data;
+    });
 
 // Update the initial fetch to populate the global variable
 fetch("http://127.0.0.1:8000/id-data-map")
@@ -541,16 +548,26 @@ fetch("http://127.0.0.1:8000/id-data-map")
             return diagonal(o, o)
           });
 
-      linkEnter.append('svg:title')
-      .attr('d', function(d){
-        var o = {x: source.x0+treeBbox.left, y: source.y0}
-        return diagonal(o, o)
-      })
-      .text(function(d){
-        if (d.data.relationship)
-          return d.data.relationship;
-        return d.data.relationship_to_parent;
-      })
+      // Add tooltips for the links
+      linkEnter.append('title')
+          .text(function(d){
+            // Get parent and child names/IDs
+            const parentData = idToData[d.parent.data.id] || {};
+            const childData = idToData[d.data.id] || {};
+            const parentName = parentData.name || d.parent.data.id;
+            const childName = childData.name || d.data.id;
+            
+            // Get relationships from relationshipMap using child's ID
+            const relationships = relationshipMap[d.data.node_id] || ['Unknown Relationship'];
+            
+            // Format relationships as a bulleted list if multiple exist
+            const relationshipText = relationships.length > 1
+              ? 'Relationships:\n• ' + relationships.join('\n• ')
+              : 'Relationship: ' + relationships[0];
+            
+            // Return formatted tooltip text
+            return `${parentName} → ${childName}\n${relationshipText}`;
+          });
     
       // UPDATE
       // Extra styling is from: 

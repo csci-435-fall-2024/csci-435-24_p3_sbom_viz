@@ -123,6 +123,12 @@ rect#node-container.node { /* Large rect node container */
   stroke-width: 3px;
 }
 
+.link:hover {
+  stroke: red;
+  stroke-width: 4px;
+  cursor: pointer;
+}
+
 .show-more, .show-all { /* Both the show-more rect and text */
   cursor: pointer;
   fill: lightgray;
