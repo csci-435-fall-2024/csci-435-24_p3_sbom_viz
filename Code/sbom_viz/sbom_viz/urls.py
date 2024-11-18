@@ -28,11 +28,12 @@ urlpatterns = [
     path("pdf-preview/", views.go_to_page_pdf_preview, name="pdf_preview"),
     # Endpoints for data transfer
     path("tree/", views.get_tree, name = "get-tree"),
+    path("relationship-map/", views.get_relationship_map, name = "get-relationship-map"),
     path("id-data-map/", views.get_data_map, name = "get-map"),
     path("uploaded/", views.is_sbom_uploaded, name="uploaded"),
     path("filename/", views.get_filename, name="get-filename"),
+    path("license/", views.get_license, name="get-license"),
     path("sec-info/", views.get_sec_info, name="get-sec-info")
-
   # Previously used to get tree via HttpResponse to 127... /data.json
   # re_path(r"[a-zA-Z]*.json$", views.json, name = "json") # allow D3 to query for data as a JSON file
 ]

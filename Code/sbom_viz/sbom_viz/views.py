@@ -1,8 +1,10 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from sbom_viz.scripts.tree_builder import TreeBuilder
+from sbom_viz.scripts.relationship_map_builder import RelationshipMapBuilder
 from sbom_viz.config.feature_flags import FLAGS
 from sbom_viz.scripts import parse_files, tree_builder, security
+from typing import Optional
 import json
 import os
 
@@ -115,7 +117,7 @@ mock_tree = {
 
 sbom_parser = parse_files.SPDXParser()
 data_map = {}
-sbom_tree = {}
+tree_builder: Optional[TreeBuilder] = None
 uploaded = False    # represents whether an SBOM has been uploaded yet
 filename = ""
 
@@ -155,9 +157,13 @@ def json(request):
     return render(request, 'sbom_viz/data.json')
 '''
     
+'''
+Builds and returns the Tree
+'''
 def get_tree(request):
     if request.method == "GET":
         global sbom_parser
+        global tree_builder
 
         if FLAGS["use_mock_tree"]:
             return JsonResponse(mock_tree)
@@ -167,13 +173,33 @@ def get_tree(request):
         tree_builder.build_tree()
 
         return JsonResponse(data=tree_builder.get_tree_as_dict(), json_dumps_params={"indent": 4})
+
+'''
+Builds and returns the Relationship Map
+''' 
+def get_relationship_map(request):
+    if request.method == "GET":
+        global tree_builder
+        
+        relationship_map_builder = RelationshipMapBuilder(tree_builder.get_root_node())
+
+        relationship_map_builder.build_map()
+
+        return JsonResponse(data=relationship_map_builder.get_map_as_dict(), json_dumps_params={"indent": 4})
     
 # This method is called when requesting the URL: localhost:8000/id-data-map
 # This url should only be called after the user submits the file upload form. Otherwise the returned data is nearly empty    
 def get_data_map(request):
     global data_map
     global sbom_parser
+    # if request.method == "GET":
+    #     return JsonResponse(data=data_map, json_dumps_params={"indent": 4})
     if request.method == "GET":
+        data_map = {"SPDXRef-DOCUMENT": {"name": "SPDXRef-DOCUMENT"}}
+        for i in sbom_parser.get_files():
+            data_map[i["id"]] = i
+        for i in sbom_parser.get_packages():
+            data_map[i["id"]] = i
         return JsonResponse(data=data_map, json_dumps_params={"indent": 4})
     
 # Indicates if an SBOM has been uploaded
@@ -228,3 +254,7 @@ def get_sec_info(request):
         sec_output=security.get_security_output(sbom_parser)
         if request.method == "GET":
             return JsonResponse(data=sec_output, json_dumps_params={"indent": 4})
+            
+def get_license(request):
+    global sbom_parser
+    return JsonResponse(data=sbom_parser.get_license_information(), json_dumps_params={"indent": 4})
