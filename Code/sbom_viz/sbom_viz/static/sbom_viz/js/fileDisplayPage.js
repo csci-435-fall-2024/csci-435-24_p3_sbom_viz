@@ -300,14 +300,9 @@ let idToData = fetch("http://127.0.0.1:8000/id-data-map").then(response => respo
             return "translate(" + source.x0 + "," + source.y0 + ")";
         })
         .on('click', click)
-        .style("stroke", function(d){
-          if (d.data.ghost){
-            console.log("GHOST NODE: " + d.data.name);
-            return 'red';
-          }
-          else{
-            console.log("NON-GHOST NODE: "+ d.data.name);
-          }
+        .style("filter", function(d){
+          if (d.data.ghost)
+            return 'hue-rotate(120deg)';
         });
       // Add rectangle container for each node
       nodeEnter.append('rect')
