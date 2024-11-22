@@ -1,7 +1,7 @@
 import json
 import re
 
-class SPDXJsonParser():
+class SpdxJsonParser():
 
     def __init__(self):
         self.data = ""
