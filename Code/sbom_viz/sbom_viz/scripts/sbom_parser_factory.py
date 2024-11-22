@@ -12,7 +12,7 @@ from sbom_viz.scripts.cyclonedx_xml_parser import CycloneDxXmlParser
 class SbomParserFactory():
     """Used in views.py to acquire an sbom parser when a file is uploaded."""
     def __init__(self):
-        """Empty init since no attributes are needed."""
+        """Empty init since no attributes are needed. They may be needed in the future."""
         pass
 
     def get_parser(self, sbom_string):

@@ -60,7 +60,7 @@ class CycloneDxXmlParser():
         """
         pass
 
-    def parse_components(self):
+    def parse_component_information(self):
         """
         This function adds the remainder of the components to self.components_list. 
         It is only intended to be called by self.parse_file(), and after self.parse_document_information().
@@ -94,11 +94,10 @@ class CycloneDxXmlParser():
 
     def parse_file(self, file_string):
         self.sbom_dict = xmltodict.parse(file_string)
-        self.get_version()
+        self.find_version()
         self.parse_licensing_information()
         self.parse_document_information()
-        self.parse_file_information()
-        self.parse_package_information()
+        self.parse_component_information()
         self.parse_relationship_information()
         self.parse_id_to_data_map()
         self.parse_purl_to_id_map()

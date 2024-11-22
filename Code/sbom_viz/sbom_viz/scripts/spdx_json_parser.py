@@ -73,7 +73,7 @@ class SpdxJsonParser():
                             self.add_to_id_license_map(file["SPDXID"], "NOASSERTION")
 
 
-    def get_version(self):
+    def find_version(self):
         if (self.format == "json"):
             match = re.search("spdxVersion\"", self.data)
             seeker = match.end() 
@@ -183,18 +183,11 @@ class SpdxJsonParser():
                         else:
                             print("\n\nDuplicate purl detected. This line comes from scripts/parse_files.py in the method parse_purl_to_id_map()\n\n")
 
-    def parse_file(self, path):
-        # store file contents as a string in self.data
-        with open(path, 'r') as f: 
-            self.data = f.read()
-        # determine and store format in self.format 
-        try:
-            json.loads(self.data)
-            self.format = "json"
-        except ValueError:
-            pass
+    def parse_file(self, sbom_string):
+        self.format = "json"
+        self.data = sbom_string
         # determine and store version in self.version
-        self.get_version()
+        self.find_version()
         self.parse_licensing_information()
         self.parse_document_information()
         self.parse_file_information()
