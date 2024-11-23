@@ -67,6 +67,8 @@ class CycloneDxXmlParser():
                         dict["type"] = component[key]
                     case _:
                         dict[key] = component[key]
+            if "@bom-ref" not in component:
+                dict["id"] = component["name"]
         except Exception as e:
             print(f"{e}\nException occurred in cyclonedx_parser -> add_component_to_dict_with_attribute_translation_xml()")
 
@@ -78,8 +80,7 @@ class CycloneDxXmlParser():
         """
         document = {}
         try:
-            dict = xmltodict.parse(self.data)
-            current_target = dict['bom']['metadata']
+            current_target = self.sbom_dict['bom']['metadata']
             for key in current_target.keys():
                 if key == "component":
                     self.translate_and_add_component_to_dict(current_target[key], document)
@@ -96,7 +97,15 @@ class CycloneDxXmlParser():
         This function adds the remainder of the components to self.components_list. 
         It is only intended to be called by self.parse_file(), and after self.parse_document_information().
         """
-        pass
+        try:
+            components = self.sbom_dict['bom']['components']['component']
+            for component in components:
+                print(component)
+                component_dict = {}
+                self.translate_and_add_component_to_dict(component=component, dict=component_dict)
+                self.components_list.append(component_dict)
+        except Exception as e:
+            pass
 
     def parse_relationship_information(self):
         """
