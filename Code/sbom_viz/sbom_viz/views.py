@@ -195,11 +195,7 @@ def get_data_map(request):
     # if request.method == "GET":
     #     return JsonResponse(data=data_map, json_dumps_params={"indent": 4})
     if request.method == "GET":
-        data_map = {"SPDXRef-DOCUMENT": {"name": "SPDXRef-DOCUMENT"}}
-        for i in sbom_parser.get_files():
-            data_map[i["id"]] = i
-        for i in sbom_parser.get_packages():
-            data_map[i["id"]] = i
+        data_map = sbom_parser.get_id_data_map()
         return JsonResponse(data=data_map, json_dumps_params={"indent": 4})
     
 # Indicates if an SBOM has been uploaded
