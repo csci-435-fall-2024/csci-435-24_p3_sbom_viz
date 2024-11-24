@@ -44,7 +44,18 @@ class CycloneDxXmlParser():
         This function fills self.license_frequency_map and self.id_data_map with sbom component data.
         It is only intended to be called by self.parse_file().
         """
-        pass
+        for component in self.components_list:
+            try:
+                licenses = component['licenses']['license']
+                if isinstance(licenses, list):
+                    for license in licenses:
+                        self.add_to_licenses_frequency_map(license['id'])
+                        self.add_to_id_license_map(id=component['id'], license=license['id'])
+                else:
+                    self.add_to_licenses_frequency_map(licenses['id'])
+                    self.add_to_id_license_map(id=component['id'], license=licenses['id'])
+            except Exception as e:
+                pass
 
     def find_version(self):
         """
@@ -174,7 +185,6 @@ class CycloneDxXmlParser():
     def parse_file(self, file_string):
         self.sbom_dict = xmltodict.parse(file_string)
         self.find_version()
-        print(self.version)
         self.parse_document_information()
         self.parse_component_information()
         self.parse_licensing_information()
