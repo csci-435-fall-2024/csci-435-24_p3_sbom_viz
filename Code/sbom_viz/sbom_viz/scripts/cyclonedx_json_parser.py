@@ -8,6 +8,7 @@ class CycloneDxJsonParser():
     def __init__(self):
         """Initialize parser attributes to store important information"""
         self.sbom_dict = {}
+        self.data = ""
         self.version = ""
         self.components_list = []
         self.relationship_list = []
@@ -94,6 +95,7 @@ class CycloneDxJsonParser():
 
     def parse_file(self, file_string):
         self.sbom_dict = json.loads(file_string)
+        self.data = file_string
         self.find_version()
         self.parse_licensing_information()
         self.parse_document_information()
