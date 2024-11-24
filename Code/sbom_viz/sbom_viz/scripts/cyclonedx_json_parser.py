@@ -47,10 +47,14 @@ class CycloneDxJsonParser():
 
     def find_version(self):
         """
-        Determine the version of SPDX and store it as a string in self.version.
+        Determine the version of CycloneDx and store it as a string in self.version.
         It is only intended to be called by self.parse_file().
         """
-        pass
+        try:
+            self.version = self.sbom_dict['specVersion']
+        except Exception:
+            pass
+        
 
     def parse_document_information(self):
         """
@@ -97,7 +101,7 @@ class CycloneDxJsonParser():
         self.find_version()
         self.parse_licensing_information()
         self.parse_document_information()
-        self.parse_components_information()
+        self.parse_component_information()
         self.parse_relationship_information()
         self.parse_id_to_data_map()
         self.parse_purl_to_id_map()
