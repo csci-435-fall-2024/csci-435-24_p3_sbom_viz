@@ -80,8 +80,18 @@ class CycloneDxJsonParser():
         This function adds the remainder of the components to self.components_list. 
         It is only intended to be called by self.parse_file(), and after self.parse_document_information().
         """
-        target = self.sbom_dict.keys()
-        print(target)
+        target = self.sbom_dict['components']
+        for component in target:
+            try:
+                translated_component = {}
+                for key in component.keys():
+                    if key == 'bom-ref':
+                        translated_component['id'] = component[key]
+                    else:
+                        translated_component[key] = component[key]
+                self.components_list.append(translated_component) 
+            except Exception:
+                pass
 
     def parse_relationship_information(self):
         """
