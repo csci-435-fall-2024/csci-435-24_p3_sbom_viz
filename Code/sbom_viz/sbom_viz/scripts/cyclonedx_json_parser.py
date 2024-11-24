@@ -65,7 +65,6 @@ class CycloneDxJsonParser():
         metadata_component = {}
         try:
             target = self.sbom_dict['metadata']['component'].keys()
-            print(target)
             for key in target:
                 if key == 'bom-ref':
                     metadata_component['id'] = target[key]
@@ -81,7 +80,8 @@ class CycloneDxJsonParser():
         This function adds the remainder of the components to self.components_list. 
         It is only intended to be called by self.parse_file(), and after self.parse_document_information().
         """
-        pass
+        target = self.sbom_dict.keys()
+        print(target)
 
     def parse_relationship_information(self):
         """
