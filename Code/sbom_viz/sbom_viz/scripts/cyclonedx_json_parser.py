@@ -134,7 +134,7 @@ class CycloneDxJsonParser():
             try:
                 self.id_data_map[component['id']] = component
             except Exception:
-                print(f"\n\nNo id for {component}\n\n")
+                pass
     
     def parse_purl_to_id_map(self):
         """
@@ -142,7 +142,11 @@ class CycloneDxJsonParser():
         with.
         This function is only intended to be called from parse_file(). It needs to be called after parse_components().
         """
-        pass
+        for component in self.components_list:
+            try:
+                self.purl_id_map[component['purl']] = component['id']
+            except Exception:
+                pass
 
     def parse_file(self, file_string):
         self.sbom_dict = json.loads(file_string)
