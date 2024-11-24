@@ -157,8 +157,13 @@ class CycloneDxXmlParser():
         This function generates the purl-to-id mapping which is used to determine which component a security vulnerability is associated
         with.
         This function is only intended to be called from parse_file(). It needs to be called after parse_components().
+        In many sboms, the id is already the purl. Also, purls are not required.
         """
-        pass
+        for component in self.components_list:
+            try:
+                self.purl_id_map[component['purl']] = component['id'] 
+            except Exception:
+                pass
 
     def parse_file(self, file_string):
         self.sbom_dict = xmltodict.parse(file_string)
