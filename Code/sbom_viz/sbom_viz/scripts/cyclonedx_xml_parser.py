@@ -1,3 +1,4 @@
+import re
 import xmltodict
 
 class CycloneDxXmlParser():
@@ -47,10 +48,15 @@ class CycloneDxXmlParser():
 
     def find_version(self):
         """
-        Determine the version of SPDX and store it as a string in self.version.
+        Determine the version of CycloneDX and store it as a string in self.version.
         It is only intended to be called by self.parse_file().
         """
-        pass
+        try:
+            target = self.sbom_dict['bom']["@xmlns"]
+            match = re.search("bom/", target)
+            self.version = target[match.end():]
+        except Exception as e:
+            print("Failed to get the version of the uploaded file.\nException:", e)
 
     def translate_and_add_component_to_dict(self, component, dict):
         """
@@ -168,6 +174,7 @@ class CycloneDxXmlParser():
     def parse_file(self, file_string):
         self.sbom_dict = xmltodict.parse(file_string)
         self.find_version()
+        print(self.version)
         self.parse_document_information()
         self.parse_component_information()
         self.parse_licensing_information()
