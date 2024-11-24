@@ -315,3 +315,16 @@ rect#node-container.node { /* Large rect node container */
 .disabled-nav-link:hover {
   cursor: default;
 }
+
+@media print {
+  table {
+    break-inside: avoid;
+  }
+  .no, .no * {
+    visibility: hidden;
+  }
+
+  .body-space {
+    top: 0;
+  }
+}
