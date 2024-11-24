@@ -70,7 +70,7 @@ class CycloneDxXmlParser():
             if "@bom-ref" not in component:
                 dict["id"] = component["name"]
         except Exception as e:
-            print(f"{e}\nException occurred in cyclonedx_parser -> add_component_to_dict_with_attribute_translation_xml()")
+            print(f"{e}\nException occurred in cyclonedx_parser -> translate_and_add_component_to_dict()")
 
     def parse_document_information(self):
         """
@@ -100,7 +100,7 @@ class CycloneDxXmlParser():
         try:
             components = self.sbom_dict['bom']['components']['component']
             for component in components:
-                print(component)
+                #print(component)
                 component_dict = {}
                 self.translate_and_add_component_to_dict(component=component, dict=component_dict)
                 self.components_list.append(component_dict)
@@ -112,6 +112,30 @@ class CycloneDxXmlParser():
         This function fills self.relationship_list
         """
         relationship_list = []
+        try:
+            dependencies = self.sbom_dict['bom']['dependencies']['dependency']
+            for dependency_entry in dependencies:
+                if "dependency" in dependency_entry: # False if the current dependency entry refers to a component with no dependencies
+                    target_id = dependency_entry['@ref']
+                    relationship_type = "dependsOn"
+                    if isinstance(dependency_entry['dependency'], list): # Components with multiple dependencies have their reference ids stored in a list 
+                        for child in dependency_entry['dependency']:
+                            relationship = {}
+                            relationship['target_id'] = target_id
+                            relationship["type"] = relationship_type
+                            relationship['source_id'] = child['@ref']
+                            relationship_list.append(relationship)
+                    else:
+                        relationship = {}
+                        relationship['target_id'] = target_id
+                        relationship["type"] = relationship_type
+                        relationship['source_id'] = dependency_entry['dependency']['@ref']
+                        relationship_list.append(relationship)
+
+        except Exception as e: 
+            # This runs on old CycloneDX versions like 1.1 with no dependencies
+            pass
+            #print("\n\n\n\nException in cyclonedx_xml_parser.py -> parse_relationship_information() \n\n\n")
         self.relationship_list = relationship_list
 
 
