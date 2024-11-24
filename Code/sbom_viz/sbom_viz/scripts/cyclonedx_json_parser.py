@@ -41,9 +41,31 @@ class CycloneDxJsonParser():
     def parse_licensing_information(self):
         """
         This function fills self.license_frequency_map and self.id_data_map with sbom component data.
-        It is only intended to be called by self.parse_file().
+        It is only intended to be called by self.parse_file(). 
+        Must be called after parse_component_information()
         """
-        pass
+        count = 0
+        for component in self.components_list:
+            try:
+                target = component['licenses']
+                for license in target:
+                    if 'name' in license['license']:
+                        self.add_to_licenses_frequency_map(license['license']['name'])
+                        try:
+                            self.add_to_id_license_map(id=component['id'], license=license['license']['name'])
+                        except Exception:
+                            pass
+                    if 'id' in license['license']:
+                        self.add_to_licenses_frequency_map(license['license']['id'])
+                        try:
+                            self.add_to_id_license_map(id=component['id'], license=license['license']['id'])
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+
+            count += 1
+
 
     def find_version(self):
         """
@@ -121,9 +143,9 @@ class CycloneDxJsonParser():
     def parse_file(self, file_string):
         self.sbom_dict = json.loads(file_string)
         self.find_version()
+        self.parse_component_information()
         self.parse_licensing_information()
         self.parse_document_information()
-        self.parse_component_information()
         self.parse_relationship_information()
         self.parse_id_to_data_map()
         self.parse_purl_to_id_map()
