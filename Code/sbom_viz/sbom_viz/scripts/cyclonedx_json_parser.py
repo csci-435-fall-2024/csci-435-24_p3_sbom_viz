@@ -130,7 +130,11 @@ class CycloneDxJsonParser():
         This function is only intended to be called from parse_file(). 
         get_id_data_map() should be used to acquire the dictionary object after a file is parsed. 
         """
-        pass
+        for component in self.components_list:
+            try:
+                self.id_data_map[component['id']] = component
+            except Exception:
+                print(f"\n\nNo id for {component}\n\n")
     
     def parse_purl_to_id_map(self):
         """
