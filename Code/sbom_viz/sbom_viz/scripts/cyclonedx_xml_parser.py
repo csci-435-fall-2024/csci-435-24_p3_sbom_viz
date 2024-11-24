@@ -146,7 +146,11 @@ class CycloneDxXmlParser():
         This function is only intended to be called from parse_file(). 
         get_id_data_map() should be used to acquire the dictionary object after a file is parsed. 
         """
-        pass
+        for component in self.components_list:
+            try :
+                self.id_data_map[component['id']] = component
+            except Exception:
+                pass
     
     def parse_purl_to_id_map(self):
         """
@@ -159,9 +163,9 @@ class CycloneDxXmlParser():
     def parse_file(self, file_string):
         self.sbom_dict = xmltodict.parse(file_string)
         self.find_version()
-        self.parse_licensing_information()
         self.parse_document_information()
         self.parse_component_information()
+        self.parse_licensing_information()
         self.parse_relationship_information()
         self.parse_id_to_data_map()
         self.parse_purl_to_id_map()
