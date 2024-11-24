@@ -62,7 +62,19 @@ class CycloneDxJsonParser():
         self.components_list.
         It is only intended to be called by self.parse_file().
         """
-        pass
+        metadata_component = {}
+        try:
+            target = self.sbom_dict['metadata']['component'].keys()
+            print(target)
+            for key in target:
+                if key == 'bom-ref':
+                    metadata_component['id'] = target[key]
+                else:
+                    metadata_component[key] = target[key]
+        except Exception:
+            pass
+        if len(metadata_component) > 1:
+            self.components_list.append(metadata_component)
 
     def parse_component_information(self):
         """
