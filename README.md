@@ -27,13 +27,15 @@ If you are getting an error trying to activate your virtual environment you migh
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 ```
 
-To use the vulnerability analysis, extract the archive 
+To use the vulnerability analysis, extract the archives
 ```bash
 csci-435-24_p3_sbom_viz\Code\sbom_viz\sbom_viz\security_scanning_tools\trivy_0.57.0_windows-64bit.zip
+csci-435-24_p3_sbom_viz\Code\sbom_viz\sbom_viz\security_scanning_tools\bomber_0.5.1_windows_amd64.tar.gz
 ```
 into 
 ```bash
 security_scanning_tools\executables\trivy_0.57.0_windows-64bit\trivy.exe
+security_scanning_tools\executables\bomber_0.5.1_windows_amd64\bomber.exe
 ```
 
 To run the Django project locally, navigate to the sbom_viz directory in your terminal:
@@ -80,10 +82,8 @@ _A note on **Ghost Nodes**_:
 ---
 
 ### Vulnerability Analysis
-After an SBOM has been uploaded, our analysis of the vulnerabilities present in the SBOM can be viewed on the Vulnerabilities tab. The tool finds the vulnerabilities present in the SBOM by parsing the file with [trivy](https://github.com/aquasecurity/trivy). To ensure the tool is able to use trivy correctly, ensure that the trivy executable is located at 
-```bash
-\csci-435-24_p3_sbom_viz\Code\sbom_viz\sbom_viz\security_scanning_tools\executables\trivy_0.57.0_windows-64bit\trivy.exe
-```
+After an SBOM has been uploaded, our analysis of the vulnerabilities present in the SBOM can be viewed on the Vulnerabilities tab. The tool finds the vulnerabilities present in the SBOM by parsing the file with [trivy](https://github.com/aquasecurity/trivy). In case trivy fails in parsing and analyzing the SBOM, we have [bomber](https://github.com/devops-kung-fu/bomber) set up as a backup. Ensure that both of these executables are extracted to the correct folder as shown above in the Installation section, otherwise the tool will not be able to find the executables and conduct the security analysis.
+
 Security analysis happens in `security.py` and generates a JSON which can be found by navigating to `/sec-info/`. The formatted analysis page includes
 - A summary of the vulnerability distribution, as the number of vulnerabilities in each CVSS severity category,
 - A pie chart reflecting this distribution,
