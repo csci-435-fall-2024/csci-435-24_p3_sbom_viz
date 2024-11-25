@@ -53,7 +53,7 @@ Now you should be able to view the site on your browser by going to your [local 
 
 ## Usage
 ### Upload an SBOM file on the homepage.
-Supporting more SBOM formats is currently WIP, but to ensure that the SBOM can correctly be parsed we suggest to using one of the SBOM examples in `Artifacts/Examples/`.
+Supporting more SBOM formats is currently WIP (currently SPDX 2.2 and SPDX 2.3 sboms in JSON are supported), but to ensure that the SBOM can correctly be parsed we suggest to using one of the SBOM examples in `Artifacts/Examples/`.
 We initially tried to use the [lib4sbom](https://pypi.org/project/lib4sbom/) library to parse the SBOM, but found that this tool eliminated information that could be valuable to the user. Instead, we implemented a custom parser which builds the SBOM into a tree object that can be easily used for visualization. This process is done in `parse_files.py` and `build_tree.py`. Then in `relationship_map_builder.py`, a map is created between each node of the custom tree and the relationship to its parent.
 
 If a file has been uploaded to the tool and able to be analyzed, its name will be displayed on the Home page.
