@@ -42,16 +42,42 @@ class CycloneDxJsonParser():
     def parse_licensing_information(self):
         """
         This function fills self.license_frequency_map and self.id_data_map with sbom component data.
-        It is only intended to be called by self.parse_file().
+        It is only intended to be called by self.parse_file(). 
+        Must be called after parse_component_information()
         """
-        pass
+        count = 0
+        for component in self.components_list:
+            try:
+                target = component['licenses']
+                for license in target:
+                    if 'name' in license['license']:
+                        self.add_to_licenses_frequency_map(license['license']['name'])
+                        try:
+                            self.add_to_id_license_map(id=component['id'], license=license['license']['name'])
+                        except Exception:
+                            pass
+                    if 'id' in license['license']:
+                        self.add_to_licenses_frequency_map(license['license']['id'])
+                        try:
+                            self.add_to_id_license_map(id=component['id'], license=license['license']['id'])
+                        except Exception:
+                            pass
+            except Exception:
+                pass
+
+            count += 1
+
 
     def find_version(self):
         """
-        Determine the version of SPDX and store it as a string in self.version.
+        Determine the version of CycloneDx and store it as a string in self.version.
         It is only intended to be called by self.parse_file().
         """
-        pass
+        try:
+            self.version = self.sbom_dict['specVersion']
+        except Exception:
+            pass
+        
 
     def parse_document_information(self):
         """
@@ -59,21 +85,61 @@ class CycloneDxJsonParser():
         self.components_list.
         It is only intended to be called by self.parse_file().
         """
-        pass
+        metadata_component = {}
+        try:
+            target = self.sbom_dict['metadata']['component'].keys()
+            for key in target:
+                if key == 'bom-ref':
+                    metadata_component['id'] = target[key]
+                else:
+                    metadata_component[key] = target[key]
+        except Exception:
+            pass
+        if len(metadata_component) > 1:
+            self.components_list.append(metadata_component)
 
     def parse_component_information(self):
         """
         This function adds the remainder of the components to self.components_list. 
         It is only intended to be called by self.parse_file(), and after self.parse_document_information().
         """
-        pass
+        target = self.sbom_dict['components']
+        for component in target:
+            try:
+                translated_component = {}
+                for key in component.keys():
+                    if key == 'bom-ref':
+                        translated_component['id'] = component[key]
+                    else:
+                        translated_component[key] = component[key]
+                self.components_list.append(translated_component) 
+            except Exception:
+                pass
 
     def parse_relationship_information(self):
         """
         This function fills self.relationship_list
         """
-        relationship_list = []
-        self.relationship_list = relationship_list
+        if 'dependencies' in self.sbom_dict:
+            for dependency in self.sbom_dict['dependencies']:
+                if len(dependency) > 1:
+                    #print(type(dependency))
+                    try:
+                        source_id = dependency['ref']
+                        for key in dependency:
+                            if key == 'ref':
+                                continue
+                            relationship_type = key
+                            for ref in dependency[key]:
+                                relationship = {}
+                                relationship['target_id'] = ref
+                                relationship['type'] = key
+                                relationship['source_id'] = source_id
+                                self.relationship_list.append(relationship)
+                    except Exception:
+                        pass
+
+
 
 
     def parse_id_to_data_map(self):
@@ -83,7 +149,11 @@ class CycloneDxJsonParser():
         This function is only intended to be called from parse_file(). 
         get_id_data_map() should be used to acquire the dictionary object after a file is parsed. 
         """
-        pass
+        for component in self.components_list:
+            try:
+                self.id_data_map[component['id']] = component
+            except Exception:
+                pass
     
     def parse_purl_to_id_map(self):
         """
@@ -91,15 +161,19 @@ class CycloneDxJsonParser():
         with.
         This function is only intended to be called from parse_file(). It needs to be called after parse_components().
         """
-        pass
+        for component in self.components_list:
+            try:
+                self.purl_id_map[component['purl']] = component['id']
+            except Exception:
+                pass
 
     def parse_file(self, file_string):
         self.sbom_dict = json.loads(file_string)
         self.data = file_string
         self.find_version()
+        self.parse_component_information()
         self.parse_licensing_information()
         self.parse_document_information()
-        self.parse_components_information()
         self.parse_relationship_information()
         self.parse_id_to_data_map()
         self.parse_purl_to_id_map()
