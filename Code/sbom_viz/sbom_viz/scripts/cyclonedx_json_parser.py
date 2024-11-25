@@ -119,8 +119,26 @@ class CycloneDxJsonParser():
         """
         This function fills self.relationship_list
         """
-        relationship_list = []
-        self.relationship_list = relationship_list
+        if 'dependencies' in self.sbom_dict:
+            for dependency in self.sbom_dict['dependencies']:
+                if len(dependency) > 1:
+                    #print(type(dependency))
+                    try:
+                        source_id = dependency['ref']
+                        for key in dependency:
+                            if key == 'ref':
+                                continue
+                            relationship_type = key
+                            for ref in dependency[key]:
+                                relationship = {}
+                                relationship['target_id'] = ref
+                                relationship['type'] = key
+                                relationship['source_id'] = source_id
+                                self.relationship_list.append(relationship)
+                    except Exception:
+                        pass
+
+
 
 
     def parse_id_to_data_map(self):
