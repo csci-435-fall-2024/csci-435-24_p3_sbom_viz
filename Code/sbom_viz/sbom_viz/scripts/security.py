@@ -3,7 +3,7 @@ import json
 import os
 
 def run_bomber_scan(path_to_sbom: str):
-    bomber_output=subprocess.run(args=["bomber", "scan", path_to_sbom, "--output", "json"], text=True)
+    bomber_output=subprocess.run(args=["./sbom_viz/security_scanning_tools/executables/bomber_0.5.1_windows_amd64/bomber.exe", "scan", path_to_sbom, "--output", "json"], text=True)
 
 def run_trivy_scan(path_to_sbom:str):
     result=subprocess.run(args=["./sbom_viz/security_scanning_tools/executables/trivy_0.57.0_windows-64bit/trivy.exe", "sbom", "--format=json", path_to_sbom], text=True, capture_output=True)
