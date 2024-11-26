@@ -3,7 +3,7 @@ from django.http import HttpResponse, JsonResponse
 from sbom_viz.scripts.tree_builder import TreeBuilder
 from sbom_viz.scripts.relationship_map_builder import RelationshipMapBuilder
 from sbom_viz.config.feature_flags import FLAGS
-from sbom_viz.scripts import parse_files, tree_builder, security
+from sbom_viz.scripts import sbom_parser_factory, tree_builder, security
 from typing import Optional
 import json
 import os
@@ -115,7 +115,7 @@ mock_tree = {
     ]
 }
 
-sbom_parser = parse_files.SPDXParser()
+sbom_parser = None
 data_map = {}
 tree_builder: Optional[TreeBuilder] = None
 uploaded = False    # represents whether an SBOM has been uploaded yet
@@ -195,11 +195,7 @@ def get_data_map(request):
     # if request.method == "GET":
     #     return JsonResponse(data=data_map, json_dumps_params={"indent": 4})
     if request.method == "GET":
-        data_map = {"SPDXRef-DOCUMENT": {"name": "SPDXRef-DOCUMENT"}}
-        for i in sbom_parser.get_files():
-            data_map[i["id"]] = i
-        for i in sbom_parser.get_packages():
-            data_map[i["id"]] = i
+        data_map = sbom_parser.get_id_data_map()
         return JsonResponse(data=data_map, json_dumps_params={"indent": 4})
     
 # Indicates if an SBOM has been uploaded
@@ -215,6 +211,7 @@ def go_to_page_home(request):
 def go_to_page_diagram(request):
     global uploaded
     global filename
+    global sbom_parser
     # If no file has been uploaded yet, and the user tries to force the app to go to the tree diagram page without uploading a file (via the browser search bar), display a 403 Forbidden error.
     if len(request.FILES) == 0 and not uploaded:
         raise PermissionDenied()
@@ -224,7 +221,11 @@ def go_to_page_diagram(request):
         file = request.FILES["file-select-input"]
         filename = file.name
         print(type(file))
-        sbom_parser.parse_file(file.temporary_file_path())
+        parser_factory = sbom_parser_factory.SbomParserFactory()
+        with open(file.temporary_file_path(), 'r') as f:
+            sbom_data = f.read()
+        sbom_parser = parser_factory.get_parser(sbom_data)
+        sbom_parser.parse_file(sbom_data)
         file_contents = ""
         for line in file:
             file_contents += line.decode()+'\n'

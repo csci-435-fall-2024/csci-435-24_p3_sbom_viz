@@ -1,6 +1,8 @@
 import "https://d3js.org/d3.v7.min.js";
 
-var data = [
+import { getLicenseData } from './license_data.js';
+
+/*var data = [
     { "license name" : 'license1', 'version':'1.0', "count" : 4 },
     { "license name" : 'license2', 'version':'1.0', "count" : 17 },
     { "license name" : 'license3', 'version':'1.0', "count" : 2 },
@@ -12,7 +14,7 @@ var data = [
     { "license name" : 'license9', 'version':'1.0', "count" : 8 },
     { "license name" : 'license10', 'version':'1.0', "count" : 0 },
     { "license name": 'other', 'version':'n/a', "count": 10 }, // for unidentifiable or missing license types
-  ]
+  ]*/
 
   function tabulate(data, columns) {
 	var table = d3.select('#license-table').append('table')
@@ -61,23 +63,31 @@ var data = [
   return table;
 }
 
-// Calculate percentage composition for each license of total
-let total_count = data.reduce((acc, license) => acc + license["count"], 0);
-data.forEach(license => {
-    license["composition"] = `${(license["count"] / total_count * 100).toFixed(1)}%`
-});
+async function setUpTable() {
 
-// render the table
-data.sort((a,b) => b.count - a.count); // sort by highest value
-tabulate((data.filter(license => license["license name"] !== "other")).slice(0,10), ['license name', 'version', 'count', 'composition']); // table with all columns
+  const data = (await getLicenseData()).map(entry => ({"license name": entry["license name"], "count": entry["count"]}));
+  console.log(data);
 
-// Count the number of distinct licenses
-let num_licenses = data.reduce((acc, license) => ((license["license name"] !== "other") ? acc + 1 : acc), 0); // count all rows except for the "other" row, if it is present
-document.getElementById("number-distinct-licenses").textContent = num_licenses;
+  // Calculate percentage composition for each license of total
+  let total_count = data.reduce((acc, license) => acc + license["count"], 0);
+  data.forEach(license => {
+      license["composition"] = `${(license["count"] / total_count * 100).toFixed(1)}%`
+  });
 
-/*
-if data comes in as csv:
-d3.csv("path/to/data.csv", function(data) {
-  tabulate(data, ["name", "age"]);
-});
-*/
+  // render the table
+  data.sort((a,b) => b.count - a.count); // sort by highest value
+  tabulate((data.filter(license => license["license name"] !== "other")).slice(0,10), ['license name', 'count', 'composition']); // table with all columns
+
+  // Count the number of distinct licenses
+  let num_licenses = data.reduce((acc, license) => ((license["license name"] !== "other") ? acc + 1 : acc), 0); // count all rows except for the "other" row, if it is present
+  document.getElementById("number-distinct-licenses").textContent = num_licenses;
+
+  /*
+  if data comes in as csv:
+  d3.csv("path/to/data.csv", function(data) {
+    tabulate(data, ["name", "age"]);
+  });
+  */
+}
+
+setUpTable();
