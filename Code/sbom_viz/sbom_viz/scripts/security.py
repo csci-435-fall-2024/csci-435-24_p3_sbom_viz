@@ -2,6 +2,9 @@ import subprocess
 import json
 import os
 import logging
+from sbom_viz.scripts.trivy_output_parser import TrivyOutputParser
+from sbom_viz.scripts.bomber_output_parser import BomberOutputParser
+
 
 def run_bomber_scan(path_to_sbom: str):
     result=subprocess.run(args=["bomber", "scan", path_to_sbom, "--output", "json"], text=True, encoding="utf-8", capture_output=True)
@@ -76,7 +79,7 @@ def run_security_scan(path_to_sbom: str):
         exit()
 
     logging.info("Finished security scan")
-    return result
+    return (scan_type, result)
 
 def update_severity_distribution(sec_info:dict, vuln_dict:dict):
     severity=vuln_dict["Severity"]
@@ -101,16 +104,15 @@ def update_top_10(sec_info:dict, vuln_dict:dict, sbom_id, cve_to_remove=None):
                 "Severity": "",
                 "Displayed_CVSS": 0}
     
-    # update top 10
-    if update_top_10:
-        if cve_to_remove is not None:
-            del sec_info["Summary"]["Top_10"][cve_to_remove]
-        for key in top_10_vuln.keys():
-            if key == "SBOM_ID":
-                top_10_vuln[key]=sbom_id
-            else:
-                top_10_vuln[key]=vuln_dict[key]
-        sec_info["Summary"]["Top_10"][vuln_dict["VulnerabilityID"]]=top_10_vuln
+    
+    if cve_to_remove is not None:
+        del sec_info["Summary"]["Top_10"][cve_to_remove]
+    for key in top_10_vuln.keys():
+        if key == "SBOM_ID":
+            top_10_vuln[key]=sbom_id
+        else:
+            top_10_vuln[key]=vuln_dict[key]
+    sec_info["Summary"]["Top_10"][vuln_dict["VulnerabilityID"]]=top_10_vuln
             
 # directly parses sbom
 def find_corresponding_sbom_component_old(purl:str, sbom_file):
@@ -175,8 +177,46 @@ def make_vuln_dict(vuln_info):
         raise e
     
     return vuln_dict
-def reformat_bomber_ouput():
-    pass
+
+def reformat_bomber_output(scan_output, sbom_parser):
+    sec_info={"Summary":{"SeverityDistr":[{"name":"Critical", "count":0}, 
+                                          {"name":"High", "count":0}, 
+                                          {"name":"Medium", "count":0}, 
+                                          {"name":"Low", "count":0},
+                                          {"name":"None", "count":0},
+                                          {"name":"Unknown", "count":0}],
+                        "Top_10":{}}, 
+                "Effected_Components":{}}
+    
+    # update severity distributions
+    sec_info["Summary"]["SeverityDistr"][5]=scan_output["summary"]["Unspecified"]
+    sec_info["Summary"]["SeverityDistr"][3]=scan_output["summary"]["Low"]
+    sec_info["Summary"]["SeverityDistr"][2]=scan_output["summary"]["Moderate"]
+    sec_info["Summary"]["SeverityDistr"][1]=scan_output["summary"]["High"]
+    sec_info["Summary"]["SeverityDistr"][0]=scan_output["summary"]["Critical"]
+
+    for pkg in scan_output["packages"]:
+        purl=pkg["coordinates"]
+        for count, vuln in enumerate(pkg["vulnerabilities"]):
+            #print(count)
+            sbom_id=find_corresponding_sbom_component(purl, sbom_parser)
+            vuln_dict=make_vuln_dict(vuln)
+            # check if sbom_id is already in sec_info
+            if sbom_id not in sec_info["Effected_Components"].keys():
+                component_dict={"PURL": "",
+                    "Dependents":[],
+                    "InstalledVersion": "",
+                    "Vulnerabilities":[]}
+                component_dict["PURL"]=purl
+                component_dict["InstalledVersion"]=vuln["InstalledVersion"]
+                sec_info["Effected_Components"][sbom_id]=component_dict
+
+            sec_info["Effected_Components"][sbom_id]["Vulnerabilities"].append(vuln_dict) 
+            
+            if count==stop_ind:
+                return sec_info 
+    
+    return sec_info
 
 def reformat_trivy_output(scan_output, sbom_parser, stop_ind=-1):
     sec_info={"Summary":{"SeverityDistr":[{"name":"Critical", "count":0}, 
@@ -252,7 +292,12 @@ def get_security_output(sbom_parser):
     write_sbom(sbom_parser.get_sbom_data(), 'sbom.json')   
     scan_output=run_security_scan("sbom.json")
     # need to consider if trivy fails
-    final_security_output=reformat_trivy_output(scan_output, sbom_parser)
+    scan_type=scan_output[0]
+    if scan_type=="trivy":
+        parser=TrivyOutputParser(sbom_parser, scan_output[1])
+        final_security_output=parser.reformat_trivy_output()
+    elif scan_type=="bomber":
+        parser=BomberOutputParser()
     remove_sbom("sbom.json") # should I remove? #are we storing already loaded sboms
     return final_security_output
 
@@ -270,13 +315,15 @@ logging.basicConfig(
 #run_trivy_scan("../../Artifacts/sbom_examples/spdx/3.0/example1.json") #trivy unable to determine sbom format
 #run_trivy_scan("../../Artifacts/sbom_examples/spdx/2.2/examle1.spdx") #file not found
 
-#run_bomber_scan("../../Artifacts/sbom_examples/cyclonedx/1.2/laravel.bom.1.2.xml") 
-#run_bomber_scan("../../Artifacts/sbom_examples/cyclonedx/1.3/cargo-valid-bom-1.3.json") # scanning occured but found nothing
-print(run_bomber_scan("../../Artifacts/sbom_examples/cyclonedx/1.4/railsgoat.cyclonedx.json"))
+#run_bomber_scan("../../Artifacts/sbom_examples/cyclonedx/1.2/laravel.bom.1.2.xml") # No packages were detected. Nothing has been scanned
+#print(run_bomber_scan("../../Artifacts/sbom_examples/cyclonedx/1.3/cargo-valid-bom-1.3.json")) # scanning occured but found nothing
+#print(run_bomber_scan("../../Artifacts/sbom_examples/cyclonedx/1.4/railsgoat.cyclonedx.json"))
 #run_bomber_scan("../../Artifacts/sbom_examples/cyclonedx/1.5/small.cyclonedx.json")
 #run_bomber_scan("../../Artifacts/sbom_examples/spdx/2.2/example1.spdx")
 #run_bomber_scan("../../Artifacts/sbom_examples/spdx/3.0/example1.json") #trivy unable to determine sbom format
 #run_bomber_scan("../../Artifacts/sbom_examples/spdx/2.2/examle1.spdx") #file not found
-#print(run_bomber_scan("../../Artifacts/sbom_examples/spdx/2.3/sampleSPDX.json")['meta'])
+#print(run_bomber_scan("../../Artifacts/sbom_examples/spdx/2.3/sampleSPDX.json"))
 
 #run_security_scan("../../Artifacts/sbom_examples/cyclonedx/1.2/laravel.bom.1.2.xml")
+#print(run_security_scan("../../Artifacts/sbom_examples/spdx/2.3/sampleSPDX.json")[1])
+
