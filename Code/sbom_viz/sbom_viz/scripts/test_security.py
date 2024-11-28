@@ -7,6 +7,7 @@ class Security_Tester(unittest.TestCase):
     @classmethod
     def setUpClass(self):
         file_path="../../Artifacts/Examples/Erroneous SBOMs/sampleSPDX.json"
+        #file_path="../../Artifacts/sbom_examples/cyclonedx/1.2/juiceshop.cyclonedx.json"
         with open(file_path, 'r') as file:
             sbom_data=file.read()
             write_sbom(sbom_data, 'sbom_test.json')
@@ -92,7 +93,8 @@ class Security_Tester(unittest.TestCase):
                                  {"name":"High", "count":2},
                                  {"name":"Medium", "count": 8},
                                  {"name":"Low", "count": 3},
-                                 {"name":"None", "count": 0}]
+                                 {"name":"None", "count": 0},
+                                 {"name":"Unknown", "count":0}]
         actual_severity_distr=self.trivy_output["Summary"]["SeverityDistr"]
         self.assertEqual(expected_severity_distr, actual_severity_distr)
         #write test for top 10

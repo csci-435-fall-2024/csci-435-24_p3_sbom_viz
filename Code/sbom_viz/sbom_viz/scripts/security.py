@@ -1,26 +1,62 @@
 import subprocess
 import json
 import os
+import logging
 
 def run_bomber_scan(path_to_sbom: str):
-    bomber_output=subprocess.run(args=["./sbom_viz/security_scanning_tools/executables/bomber_0.5.1_windows_amd64/bomber.exe", "scan", path_to_sbom, "--output", "json"], text=True)
-
+    result=subprocess.run(args=["bomber", "scan", path_to_sbom, "--output", "json"], text=True, encoding="utf-8", capture_output=True)
+    #print(result)
+    try:
+        bomber_output=json.loads(result.stdout.strip())
+        return bomber_output
+    except json.decoder.JSONDecodeError as e:
+        if "No packages were detected. Nothing has been scanned." in result.stdout:
+            logging.info("[bomber] No packages were detected. Nothing has been scanned.")
+            return False
+        # shouldn't reach this case since file not found should have been handled by trivy scan (it's here just in case)
+        elif "The system cannot find the file specified" in result.stdout:
+            exit()
+    
 def run_trivy_scan(path_to_sbom:str):
-    result=subprocess.run(args=["./sbom_viz/security_scanning_tools/executables/trivy_0.57.0_windows-64bit/trivy.exe", "sbom", "--format=json", path_to_sbom], text=True, capture_output=True)
-    #result=subprocess.run(args=["trivy", "sbom", "--format=json", path_to_sbom], text=True, capture_output=True)
-    
-    # if there is no stdout, it's likely that trivy wasn't able to scan the sbom due to errors like "file not found"
-    if result.stdout=='':
-        print(result.stderr)
-        return False
-    trivy_output=json.loads(result.stdout.strip())
+    try:
+        result=subprocess.run(args=["trivy", "sbom", "--format=json", path_to_sbom], text=True, encoding="utf-8", capture_output=True)
 
-    # if trivy found no error (?) or was unable to scan for errors due to missing PURL
-    if "Results" not in trivy_output.keys():
-        return False
-    
-    return trivy_output
+        # convert output from subprocess into a dictionary
+        trivy_output=json.loads(result.stdout.strip())
 
+        # if trivy found no packages to scan
+        if "Results" not in trivy_output.keys():
+            #print(result.stderr)
+            #print(trivy_output)
+            logging.info("[trivy] Found no packages to scan")
+            return False
+        
+        return trivy_output
+    except Exception as e:
+        # if there is no stdout, it's likely that trivy wasn't able to scan the sbom due to errors like "file not found" or unsupported type
+        if result.stdout=='':
+            logging.info("[trivy] Trivy scan failed")
+            for log_message in result.stderr.split('\n'):
+                if log_message=='':
+                    continue
+                message_parts=log_message.split('\t')
+                if message_parts[2]=="[vuln] Vulnerability scanning is enabled":
+                    logging.debug("[trivy] Vulnerability scanning is enabled")
+                if message_parts[2]=="Detected SBOM format":
+                    logging.debug("[trivy] Detected SBOM format; "+ message_parts[3])
+                if message_parts[1]=="FATAL":
+                    # if the system cannot find the file exit the program; there is no point to try with bomber since it'll likely encounter the same issue
+                    if "failed to open sbom file error" in message_parts[3]:
+                        logging.error("[trivy] "+message_parts[3])
+                        exit()
+                    else:
+                        logging.info("[trivy] "+message_parts[3])
+            return False
+        else:
+            print(result)
+            logging.error("[trivy] An unexpected error occured during the Trivy scan")
+            raise e
+    
 def run_security_scan(path_to_sbom: str):
     # To Do: sanitize input, error checks, bomber scan for backup, file type check for scanning tools
     # Note: runs from current directory
@@ -30,14 +66,16 @@ def run_security_scan(path_to_sbom: str):
 
     # if the trivy scan doesn't work, use bomber
     if result==False:
+        logging.info("Trivy failed to scan. Now attempting Bomber scan.")
         scan_type="bomber"
         result=run_bomber_scan(path_to_sbom)
     
     # if neither work, exit and return error message
     if result==False:
-        print("unable to scan for security vulnerabilites")
+        logging.warning("Unable to scan for security vulnerabilites or both tools determined there was nothing scan")
         exit()
 
+    logging.info("Finished security scan")
     return result
 
 def update_severity_distribution(sec_info:dict, vuln_dict:dict):
@@ -52,7 +90,8 @@ def update_severity_distribution(sec_info:dict, vuln_dict:dict):
         sec_info["Summary"]["SeverityDistr"][3]["count"]+=1
     elif severity=="NONE":
         sec_info["Summary"]["SeverityDistr"][4]["count"]+=1
-    #unknown, none?/
+    elif severity=="UNKNOWN":
+        sec_info["Summary"]["SeverityDistr"][5]["count"]+=1
 
 def update_top_10(sec_info:dict, vuln_dict:dict, sbom_id, cve_to_remove=None):
     top_10_vuln= {"SBOM_ID": "",
@@ -136,19 +175,24 @@ def make_vuln_dict(vuln_info):
         raise e
     
     return vuln_dict
+def reformat_bomber_ouput():
+    pass
 
 def reformat_trivy_output(scan_output, sbom_parser, stop_ind=-1):
     sec_info={"Summary":{"SeverityDistr":[{"name":"Critical", "count":0}, 
                                           {"name":"High", "count":0}, 
                                           {"name":"Medium", "count":0}, 
                                           {"name":"Low", "count":0},
-                                          {"name":"None", "count":0}],
+                                          {"name":"None", "count":0},
+                                          {"name":"Unknown", "count":0}],
                         "Top_10":{}}, 
                 "Effected_Components":{}}
 
     top_10_cvss={} #tied scores?
-    
     for pkg_type in scan_output["Results"]:
+        # no vulnerabilites found for packages of package type
+        if "Vulnerabilites" not in pkg_type["Vulnerabilities"]:
+            print("No vulnerabilites found for packages with package type", pkg_type["Type"])
         for count, vuln in enumerate(pkg_type["Vulnerabilities"]):
             #print(count)
             purl=vuln["PkgIdentifier"]["PURL"]
@@ -191,7 +235,7 @@ def reformat_trivy_output(scan_output, sbom_parser, stop_ind=-1):
 # currently only for json
 def write_sbom(sbom_data, file_path):
     # Write data to JSON file
-    with open(file_path, 'w') as file:
+    with open(file_path, 'w', encoding='utf-8') as file:
         file.write(sbom_data)
 
     print(f"JSON file '{file_path}' has been created successfully.")
@@ -212,6 +256,27 @@ def get_security_output(sbom_parser):
     remove_sbom("sbom.json") # should I remove? #are we storing already loaded sboms
     return final_security_output
 
-# scan=run_trivy_scan("../../Artifacts/Examples/Working SBOMs/sbom2.3.spdx.json")
-# print(scan)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s\t%(levelname)s\t%(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S%z"
+)
 
+#run_trivy_scan("../../Artifacts/sbom_examples/cyclonedx/1.2/laravel.bom.1.2.xml") #xml on trivy
+#print(run_trivy_scan("../../Artifacts/sbom_examples/cyclonedx/1.3/cargo-valid-bom-1.3.json")) # scanning occured but found nothing
+#run_trivy_scan("../../Artifacts/sbom_examples/cyclonedx/1.4/railsgoat.cyclonedx.json")
+#print(run_trivy_scan("../../Artifacts/sbom_examples/cyclonedx/1.5/small.cyclonedx.json"))
+#run_trivy_scan("../../Artifacts/sbom_examples/spdx/2.2/example1.spdx")
+#run_trivy_scan("../../Artifacts/sbom_examples/spdx/3.0/example1.json") #trivy unable to determine sbom format
+#run_trivy_scan("../../Artifacts/sbom_examples/spdx/2.2/examle1.spdx") #file not found
+
+#run_bomber_scan("../../Artifacts/sbom_examples/cyclonedx/1.2/laravel.bom.1.2.xml") 
+#run_bomber_scan("../../Artifacts/sbom_examples/cyclonedx/1.3/cargo-valid-bom-1.3.json") # scanning occured but found nothing
+print(run_bomber_scan("../../Artifacts/sbom_examples/cyclonedx/1.4/railsgoat.cyclonedx.json"))
+#run_bomber_scan("../../Artifacts/sbom_examples/cyclonedx/1.5/small.cyclonedx.json")
+#run_bomber_scan("../../Artifacts/sbom_examples/spdx/2.2/example1.spdx")
+#run_bomber_scan("../../Artifacts/sbom_examples/spdx/3.0/example1.json") #trivy unable to determine sbom format
+#run_bomber_scan("../../Artifacts/sbom_examples/spdx/2.2/examle1.spdx") #file not found
+#print(run_bomber_scan("../../Artifacts/sbom_examples/spdx/2.3/sampleSPDX.json")['meta'])
+
+#run_security_scan("../../Artifacts/sbom_examples/cyclonedx/1.2/laravel.bom.1.2.xml")
