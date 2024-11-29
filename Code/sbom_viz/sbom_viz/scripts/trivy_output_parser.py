@@ -1,8 +1,14 @@
+import logging
 
 class TrivyOutputParser():
     def __init__(self, sbom_parser, scan_output:dict):
         self.sbom_parser=sbom_parser
         self.scan_output=scan_output
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s\t%(levelname)s\t%(message)s",
+            datefmt="%Y-%m-%dT%H:%M:%S%z"
+        )
 
     def __update_severity_distribution(self, sec_info:dict, vuln_dict:dict):
         severity=vuln_dict["Severity"]
@@ -62,7 +68,7 @@ class TrivyOutputParser():
             for key in vuln_dict.keys():
                 if key in ["VulnerabilityID", "SeveritySource", "Status", "Title", "Description", "Severity", "CVSS", "PublishedDate", "LastModifiedDate"] and key not in vuln_info.keys():
                     keys_missing.append(key)
-                    print(key, "missing")
+                    logging.debug("[trivy parser] "+ key + " missing for "+vuln_info["VulnerabilityID"])
                 elif key == "CWE_IDs" and "CweIDs" not in vuln_info.keys():
                     keys_missing.append(key)
                 elif key ==  "Displayed_CVSS" and "CVSS" in keys_missing:
@@ -100,8 +106,9 @@ class TrivyOutputParser():
         top_10_cvss={} #tied scores?
         for pkg_type in self.scan_output["Results"]:
             # no vulnerabilites found for packages of package type
-            if "Vulnerabilites" not in pkg_type["Vulnerabilities"]:
-                print("No vulnerabilites found for packages with package type", pkg_type["Type"])
+            if "Vulnerabilities" not in pkg_type.keys():
+                logging.debug("[trivy parser] No vulnerabilites found for packages with package type "+pkg_type["Type"])
+                continue
             for count, vuln in enumerate(pkg_type["Vulnerabilities"]):
                 purl=vuln["PkgIdentifier"]["PURL"]
                 sbom_id=self.__find_corresponding_sbom_component(purl)
@@ -139,3 +146,4 @@ class TrivyOutputParser():
         # sort by CVSS score (highest to lowest)
         sec_info["Summary"]["Top_10"] = dict(sorted(sec_info["Summary"]["Top_10"].items(), key=lambda item: item[1]["Displayed_CVSS"], reverse=True))
         return sec_info
+    
