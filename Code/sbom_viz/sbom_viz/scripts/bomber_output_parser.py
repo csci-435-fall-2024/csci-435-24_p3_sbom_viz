@@ -1,4 +1,5 @@
 import logging
+
 class BomberOutputParser():
     def __init__(self, sbom_parser, scan_output:dict):
         self.sbom_parser=sbom_parser
@@ -47,9 +48,11 @@ class BomberOutputParser():
                                             {"name":"Unknown", "count":0}],
                             "Top_10":{}}, 
                     "Effected_Components":{}}
+        
         if "packages" not in self.scan_output.keys():
             logging.info("[bomber parser] No vulnerabilites were found by bomber scan using osv provider")
             return sec_info
+        
         # update severity distributions
         sec_info["Summary"]["SeverityDistr"][5]["count"]=self.scan_output["summary"]["Unspecified"]
         sec_info["Summary"]["SeverityDistr"][3]["count"]=self.scan_output["summary"]["Low"]
