@@ -222,7 +222,7 @@ def go_to_page_diagram(request):
         filename = file.name
         print(type(file))
         parser_factory = sbom_parser_factory.SbomParserFactory()
-        with open(file.temporary_file_path(), 'r') as f:
+        with open(file.temporary_file_path(), 'r', encoding="utf-8") as f:
             sbom_data = f.read()
         sbom_parser = parser_factory.get_parser(sbom_data)
         sbom_parser.parse_file(sbom_data)
