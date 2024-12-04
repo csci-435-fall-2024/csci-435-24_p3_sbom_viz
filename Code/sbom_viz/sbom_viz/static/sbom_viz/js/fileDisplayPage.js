@@ -88,7 +88,7 @@ async function loadData() {
     d3.json("http://127.0.0.1:8000/tree").then(async function(data){
         // Wait for relationship and id data to load first
         await loadData();
-
+        
         root = d3.hierarchy(data, function(d){return d.children;});
         //root = d3.hierarchy(treeData, function(d) { return d.children; });
         root.x0 = height / 2;
@@ -345,7 +345,8 @@ async function loadData() {
     
       // Enter any new modes at the parent's previous position.
       // If this node has children, it has class "node parent"
-      // Otherwise, it has class "node leaf"
+      // Otherwise, it has class "node leaf".
+      // If this node is a ghost node, apply a filter so that it appears red.
       var nodeEnter = node.enter().append('g')
           .attr('class', function(d){
             if (d._children || d.children) return "node parent";
@@ -354,8 +355,11 @@ async function loadData() {
           .attr("transform", function(d) {
             return "translate(" + source.x0 + "," + source.y0 + ")";
         })
-        .on('click', click);
-
+        .on('click', click)
+        .style("filter", function(d){
+          if (d.data.ghost)
+            return 'hue-rotate(120deg)';
+        });
       // Add rectangle container for each node
       nodeEnter.append('rect')
           .attr('class', 'node')
