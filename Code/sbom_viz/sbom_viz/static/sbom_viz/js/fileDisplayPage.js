@@ -16,18 +16,16 @@ new FileDisplayPage()
 let idToData = {};
 let relationshipMap = {};
 
-fetch("http://127.0.0.1:8000/relationship-map")
-    .then(response => response.json())
-    .then(data => {
-        relationshipMap = data;
-    });
-
-// Update the initial fetch to populate the global variable
-fetch("http://127.0.0.1:8000/id-data-map")
-    .then(response => response.json())
-    .then(data => {
-        idToData = data;
-    });
+// Create a function to load both data sources
+async function loadData() {
+    const [relationshipResponse, idDataResponse] = await Promise.all([
+        fetch("http://127.0.0.1:8000/relationship-map"),
+        fetch("http://127.0.0.1:8000/id-data-map")
+    ]);
+    
+    relationshipMap = await relationshipResponse.json();
+    idToData = await idDataResponse.json();
+}
 
       /*
        * Credit: 
@@ -87,7 +85,10 @@ fetch("http://127.0.0.1:8000/id-data-map")
     // Currently loads JSON data from this link,
     // The commented out line below would allow it to use the
     // Raw JSON defined in this file
-    d3.json("http://127.0.0.1:8000/tree").then(function(data){
+    d3.json("http://127.0.0.1:8000/tree").then(async function(data){
+        // Wait for relationship and id data to load first
+        await loadData();
+        
         root = d3.hierarchy(data, function(d){return d.children;});
         //root = d3.hierarchy(treeData, function(d) { return d.children; });
         root.x0 = height / 2;
