@@ -58,7 +58,14 @@ async function tabulate(data, columns) {
 	  })
 	  .enter()
 	  .append('td')
-	    .text(function (d) { return d.value; })
+      // If this is the 'cve_id' column, then make 
+      // the cve_id a link rather than text
+	    .html(function (d){
+        if (d.column == "cve_id"){
+          return `<a href="https://nvd.nist.gov/vuln/detail/${d.value}" target="_blank" >${d.value}</a>`;
+        }
+        return d.value; 
+      })
         .style("border", "1px black solid")
         .style("padding", "5px")
         .on("mouseover", function(){
