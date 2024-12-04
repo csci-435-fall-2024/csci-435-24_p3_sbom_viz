@@ -70,18 +70,13 @@ async function setUpPieChart(){
             .attr("fill", d => color(d.data.name))
             .attr("stroke", "white")
         .style("stroke-width", "2px")
-        // on hover, show the name of this category
-        // TODO -> implement a more through mouseover behavior
-        // like create a div that has:
-        //
-        // name
-        // count
-        // percentage of total vulnerabilities
+        // on hover, show the name of this category and the count
         .append("title")
-            .text(d => d.data.name); // show name on hover TODO make this more thorough
+            .text(d => `${d.data.name}\n${d.data.count}`);
         
 
-    // Add labels and count to each slice
+    // Add labels and count to each slice -
+    // Only if there is space to do so
     svg.selectAll("text")
         .data(pie(data))
         .enter()
@@ -89,7 +84,7 @@ async function setUpPieChart(){
             // this is the bold label of the caregory
             .attr("transform", d => `translate(${arcLabel.centroid(d)})`) // using arcLabel instead of arc moves it towards the border
             .attr("text-anchor", "middle")
-            .call(text => text.append("tspan")
+            .call(text => text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
                 .attr("y", "-0.4em")
                 .attr("font-weight", "bold")
                 .text(d => d.data.name))

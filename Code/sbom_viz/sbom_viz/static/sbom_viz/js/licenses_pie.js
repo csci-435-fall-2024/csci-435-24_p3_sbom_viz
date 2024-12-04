@@ -45,12 +45,11 @@ async function setUpPieChart() {
                     .sort(null) // helps to get colors right
                     .value(d => d.count);
     
-    // The range part makes it color kind of like severity, from:
-    // https://observablehq.com/@d3/pie-chart/2
-    const color = d3.scaleOrdinal()
-                    .domain(data.map(d => d["license name"]))
-                    .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length))
-    
+    // Use different colors from the vulnerabilities page,
+    // because we don't have a measure of how 'severe' different
+    // licenses are (which we do have for the vuln. page)
+    const color = d3.scaleOrdinal(d3.schemeObservable10);
+
     const labelRadius = arc.outerRadius()() * 0.8;
     
     // A separate arc generator for labels 
@@ -68,18 +67,13 @@ async function setUpPieChart() {
             .attr("fill", d => color(d.data["license name"]))
             .attr("stroke", "white")
         .style("stroke-width", "2px")
-        // on hover, show the name of this category
-        // TODO -> implement a more through mouseover behavior
-        // like create a div that has:
-        //
-        // name
-        // count
-        // percentage of total vulnerabilities
+        // on hover, show the name of this category and the count
         .append("title")
-            .text(d => d.data["license name"]); // show name on hover TODO make this more thorough
+            .text(d => `${d.data["license name"]}\n${d.data.count}`);
         
     
-    // Add labels and count to each slice
+    // Add labels and count to each slice -
+    // Only if there is space to do so
     svg.selectAll("text")
         .data(pie(data))
         .enter()
@@ -87,7 +81,7 @@ async function setUpPieChart() {
             // this is the bold label of the caregory
             .attr("transform", d => `translate(${arcLabel.centroid(d)})`) // using arcLabel instead of arc moves it towards the border
             .attr("text-anchor", "middle")
-            .call(text => text.append("tspan")
+            .call(text => text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
                 .attr("y", "-0.4em")
                 .attr("font-weight", "bold")
                 .text(d => d.data["license name"]))
