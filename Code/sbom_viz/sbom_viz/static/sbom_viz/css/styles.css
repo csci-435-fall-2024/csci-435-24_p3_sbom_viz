@@ -84,19 +84,6 @@ form {
     border-radius: 3px;
 }
 
-/* 
-Didn't find a need for styling the filetype selecting
-area, but just in case we want to change it later
-.file-type {
-
-}
-*/
-
-/* Make the "Select SBOM Standard" text bolder */
-label[for="file-standard-selector"] {
-    font-weight: bolder;
-}
-
 #upload-button {
     background-color: rgb(79, 87, 87);
     color:whitesmoke;

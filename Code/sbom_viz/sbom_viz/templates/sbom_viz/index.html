@@ -20,19 +20,6 @@
         {% csrf_token %}
         <div id="title">Upload SBOM File</div>
 
-        <!-- Radio Selector for SBOM Standard -->
-        <div class="file-type">
-            <label for="file-standard-selector">Select SBOM Standard:</label>
-            <div id="file-standard-selector">
-                <!-- SPDX Radio Option -->
-                <label for="file-standard-spdx">SPDX</label>
-                <input type="radio" name="file-standard-selector-option" id="file-standard-spdx" value="spdx" checked />
-                <!-- CycloneDX Radio Option -->
-                <label for="file-standard-cyclone-dx">CycloneDX</label>
-                <input type="radio" name="file-standard-selector-option" id="file-standard-cyclone-dx" value="cyclone-dx" />
-            </div>
-        </div>
-
         <div class="file-select">
             <!-- SBOM File Select Button -->
             <label for="file-select-input">Select File</label>
