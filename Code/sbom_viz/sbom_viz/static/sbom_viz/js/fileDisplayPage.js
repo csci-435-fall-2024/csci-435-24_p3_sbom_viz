@@ -40,6 +40,12 @@ async function loadData() {
        *    and Vertical orientation
        */
 
+      /* 
+
+      ** UNUSED **
+      ** Previously used when initially developing the tree, **
+      ** before the tool could use real data                 **
+
       var treeData =
       {
         "name": "Top Level",
@@ -54,7 +60,8 @@ async function loadData() {
           { "name": "Level 2: B" }
         ]
       };
-    
+      */
+
     // Set the dimensions and margins of the diagram
     var margin = {top: 50, right: 400, bottom: 30, left: 90},
         width = 1000 - margin.left - margin.right,
@@ -74,23 +81,27 @@ async function loadData() {
     var i = 0,
         duration = 750, // in milliseconds
         root;
-
+    
+    /*
+     * A 'node' is a single software component found in the SBOM,
+     * represented by a rectangle with the following dimensions:
+     */
     let node_width = 200;
     let node_height = 100;
     
-    // declares a tree layout and assigns the size
+    // Declares a tree layout and assign the size
     var treemap = d3.tree().nodeSize([node_width,node_height])//size([height, width]);
     
     // Assigns parent, children, height, depth
     // Currently loads JSON data from this link,
     // The commented out line below would allow it to use the
-    // Raw JSON defined in this file
+    // Raw JSON defined above (treeData)
     d3.json("http://127.0.0.1:8000/tree").then(async function(data){
         // Wait for relationship and id data to load first
         await loadData();
         
         root = d3.hierarchy(data, function(d){return d.children;});
-        //root = d3.hierarchy(treeData, function(d) { return d.children; });
+        //root = d3.hierarchy(treeData, function(d) { return d.children; }); // <- USE DUMMY DATA INSTEAD
         root.x0 = height / 2;
         root.y0 = 0;
 
@@ -101,7 +112,12 @@ async function loadData() {
         resizeCanvas(treemap(root), node_width, node_height);
     });
 
-    // Collapse the node and all its children
+    /* 
+     * Helper function:: 
+     * Collapse the level directly under the node [d].
+     * Used when initially building the tree (just above),
+     * and in the collapseAllNodes() function
+     */
     function collapse(d) {
       if (d.children) {
           d._children = d.children
@@ -115,9 +131,16 @@ async function loadData() {
       resizeCanvas(treemap(root), node_width, node_height); // could be unnecessary
     }
 
-    // Expand this node and its children
-    // d._children is hidden children,
-    // d.children is visible children
+    /* 
+     * Helper function:: 
+     *    Expand the level directly under the node [d]
+     *    Used when initially building the tree (just above),
+     *    and in the collapseAllNodes() function.
+     * 
+     * A note on D3 - 
+     *    d._children is the set of hidden children of [d],
+     *    d.children is the set of visible children of [d]
+     */
     function expand(d){
       var children = (d.children) ? d.children : d._children;
       if (d._children) {        
@@ -130,8 +153,14 @@ async function loadData() {
     }
 
     /*
-     * Whether or not this node has visible children,
+     * Called when the circular button in the bottom left of a node
+     * is pressed, if the node has ANY collapsed children,              <- Start = node that was clicked
+     * or when the 'Collapse All' button in the top left is selected.   <- No start passed in, so root is default
+     * 
+     * Whether or not [start] has visible children,
      * go through its children and try to collapse them.
+     * Correct any '+'/'-' that may need to be updated after this change.
+     * 
      */
     function collapseAllNodes(start = root){
       if (start.children) 
@@ -143,6 +172,15 @@ async function loadData() {
       setAllPlusMinusButton(); // these nodes are now collapsed, so set their buttons to '+'
     }
 
+    /*
+     * Called when the circular button in the bottom left of a node
+     * is pressed, if there is AT LEAST ONE collapsed child of [start],  <- Start = node that was clicked
+     * or when the 'Expand All' button in the top left is selected.      <- No start passed in, so root is default
+     * 
+     * Whether or not [start] has visible children,
+     * go through its children and try to collapse them.
+     * Correct any '+'/'-' that may need to be updated after this change.
+     */
     function expandAllNodes(start = root){
       expand(start);
       update(start);
@@ -150,8 +188,11 @@ async function loadData() {
     }
 
     /* 
-     * 
-     * Return true if a collapsed child exists
+     * Called when the circular button in the bottom left of a node is clicked,
+     * in order to decide which of expandAllNodes() or collapseAllNodes() should be called
+     *
+     * Return true if there is at least one collapsed child
+     * somewhere below the node [start].
      */
     function collapsedChildExists(start){
 
