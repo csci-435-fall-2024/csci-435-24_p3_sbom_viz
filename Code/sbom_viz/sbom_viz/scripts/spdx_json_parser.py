@@ -72,22 +72,39 @@ class SpdxJsonParser():
                         if ("SPDXID" in file):
                             self.add_to_id_license_map(file["SPDXID"], "NOASSERTION")
 
+        elif ((self.version == "SPDX-3.0") and self.format == "json"):
+            data_object = json.loads(self.data)
+            graph = data_object.get("@graph", [])
+            
+            for node in graph:
+                if node.get("type") == "Relationship" and node.get("relationshipType") in ["hasConcludedLicense", "hasDeclaredLicense"]:
+                    license_id = node.get("to", [])[0] if isinstance(node.get("to"), list) else node.get("to")
+                    component_id = node.get("from")
+                    
+                    if component_id and license_id:
+                        self.id_license_map[component_id] = license_id
+                    
+                    if license_id:
+                        self.license_frequency_map[license_id] = self.license_frequency_map.get(license_id, 0) + 1
 
     def find_version(self):
         if (self.format == "json"):
-            match = re.search("spdxVersion\"", self.data)
-            seeker = match.end() 
-            found_quote = False
-            spdx_version = ""
-            while True:
-                if (found_quote == False and self.data[seeker] == "\""):
-                    found_quote = True
-                elif (self.data[seeker] == "\""):
-                    break;
-                elif (found_quote):
-                    spdx_version += self.data[seeker]
-                seeker += 1
-            self.version = spdx_version
+            if "spdxVersion" in self.data:
+                match = re.search("spdxVersion\"", self.data)
+                seeker = match.end() 
+                found_quote = False
+                spdx_version = ""
+                while True:
+                    if (found_quote == False and self.data[seeker] == "\""):
+                        found_quote = True
+                    elif (self.data[seeker] == "\""):
+                        break;
+                    elif (found_quote):
+                        spdx_version += self.data[seeker]
+                    seeker += 1
+                self.version = spdx_version
+            elif "@context" in self.data:
+                self.version = "SPDX-3.0"
 
     # returns a dictionary holding the sbom document component without the files, packages, or relationships attributes
     # since that information can be accessed through other functions
@@ -102,6 +119,19 @@ class SpdxJsonParser():
                     continue
                 else:
                     document[attribute] = data_object[attribute]
+
+        elif ((self.version == "SPDX-3.0") and self.format == "json"):
+            data_object = json.loads(self.data)
+            graph = data_object.get("@graph", [])
+            for node in graph:
+                if node.get("type") == "SpdxDocument":
+                    for attribute in node:
+                        if (attribute == "spdxId"):
+                            document['id'] = node[attribute]
+                        elif (attribute == 'files' or attribute == 'relationships' or attribute == 'packages'):
+                            continue
+                        else:
+                            document[attribute] = node[attribute]
         self.document = document
     
     def parse_file_information(self):
@@ -114,10 +144,25 @@ class SpdxJsonParser():
                     for attribute in file:
                         if (attribute == "SPDXID"):
                             reformatted_file['id'] = file[attribute]
-                        elif (attribute == "fileName"):
-                            reformatted_file['name'] = file[attribute]
                         else:
                             reformatted_file[attribute] = file[attribute]
+                    file_list.append(reformatted_file)
+
+        elif ((self.version == "SPDX-3.0") and self.format == "json"):
+            data_object = json.loads(self.data)
+            graph = data_object.get("@graph", [])
+            for node in graph:
+                if node.get("type") == "software_File":
+                    reformatted_file = {}
+                    for attribute in node:
+                        if (attribute == "spdxId"):
+                            reformatted_file['id'] = node[attribute]
+                        elif (attribute == "software_copyrightText"):
+                            reformatted_file['copyrightText'] = node[attribute]
+                        elif (attribute == "software_downloadLocation"):
+                            reformatted_file['downloadLocation'] = node[attribute]
+                        else:
+                            reformatted_file[attribute] = node[attribute]
                     file_list.append(reformatted_file)
         self.file_list = file_list
 
@@ -134,6 +179,23 @@ class SpdxJsonParser():
                         else:
                             reformatted_package[attribute] = package[attribute]
                     package_list.append(reformatted_package)
+        elif ((self.version == "SPDX-3.0") and self.format == "json"):
+            data_object = json.loads(self.data)
+            graph = data_object.get("@graph", [])
+            for node in graph:
+                if node.get("type") == "software_Package":
+                    reformatted_file = {}
+                    for attribute in node:
+                        if (attribute == "spdxId"):
+                            reformatted_file['id'] = node[attribute]
+                        elif (attribute == "software_copyrightText"):
+                            reformatted_file['copyrightText'] = node[attribute]
+                        elif (attribute == "software_downloadLocation"):
+                            reformatted_file['downloadLocation'] = node[attribute]
+                        else:
+                            reformatted_file[attribute] = node[attribute]
+                    package_list.append(reformatted_file)
+        
         self.package_list = package_list
 
     def parse_relationship_information(self):
@@ -160,6 +222,38 @@ class SpdxJsonParser():
                     relationship['type'] = "DESCRIBES"
                     relationship['target_id'] = target_id
                     relationship_list.append(relationship)
+        elif ((self.version == "SPDX-3.0") and self.format == "json"):
+            data_object = json.loads(self.data)
+            graph = data_object.get("@graph", [])
+            for node in graph:
+                if node.get("type") == "Relationship":
+                    if node.get("relationshipType") in ["hasConcludedLicense", "hasDeclaredLicense"]:
+                        continue
+                    reformatted_relationship = {}
+                    rel_type = node.get("relationshipType")
+                    rel_type = node.get("relationshipType")
+                    from_id = node.get("from")
+                    to_list = node.get("to", [])
+
+                    if isinstance(to_list, list):
+                        for target in to_list:
+                            reformatted_relationship = {
+                                "type": rel_type,
+                                "source_id": from_id,
+                                "target_id": target,
+                                "spdxId": node.get("spdxId"),
+                                "creationInfo": node.get("creationInfo"),
+                            }
+                            relationship_list.append(reformatted_relationship)
+                    else:
+                        reformatted_relationship = {
+                            "type": rel_type,
+                            "from": from_id,
+                            "target_id": to_list,
+                            "spdxId": node.get("spdxId"),
+                            "creationInfo": node.get("creationInfo"),
+                        }
+                        relationship_list.append(reformatted_relationship)
         self.relationship_list = relationship_list
 
     # Must be called after parsing document, file, and package information
@@ -231,3 +325,25 @@ class SpdxJsonParser():
     # for scanning vulnerabilities
     def get_sbom_data(self):
         return self.data
+    
+
+# '''Testing'''
+# with open('example1.json', 'r') as f:
+#     sbom_data = f.read()
+
+# parser = SpdxJsonParser()
+# parser.parse_file(sbom_data)
+
+# print("Version:", parser.version)
+# print("Document:", parser.document)
+# print("Files:", parser.file_list)
+# print("Packages:", parser.package_list)
+# print("Relationships:", parser.relationship_list)
+
+
+
+#example output: Version: SPDX-2.3
+# Document: {'id': 'SPDXRef-DOCUMENT', 'name': 'SBOM-SPDX-2d85f548-12fa-46d5-87ce-5e78e5e111f4', 'spdxVersion': 'SPDX-2.3', 'creationInfo': {'created': '2022-11-03T07:10:10Z', 'creators': ['Tool: sigs.k8s.io/bom/pkg/spdx']}, 'dataLicense': 'CC0-1.0', 'documentNamespace': 'https://spdx.org/spdxdocs/k8s-releng-bom-7c6a33ab-bd76-4b06-b291-a850e0815b07', 'documentDescribes': ['SPDXRef-Package-hello-server-src', 'SPDXRef-File-hello-server']}
+# Files: [{'id': 'SPDXRef-File-hello-server', 'name': 'hello-server', 'copyrightText': 'NOASSERTION', 'licenseConcluded': 'Apache-2.0', 'fileTypes': ['BINARY'], 'licenseInfoInFiles': ['NONE'], 'checksums': [{'algorithm': 'SHA1', 'checksumValue': '79b7bfed022c9c7c9957d8aec36cb6492a25b42a'}, {'algorithm': 'SHA256', 'checksumValue': 'bd2195f2551328fa3ad870726f5591fd82fdc5dd33a359be79d356dbecd5868b'}, {'algorithm': 'SHA512', 'checksumValue': 'c61eeb0b489bb219b898c6d3044fc431dec58ad999dae2cf0a8067dd1b3e4eef2b186d0f8af63b4d80732aa5146f7b13b1feb7a454227cf26d4525874231a281'}]}]        
+# Packages: [{'id': 'SPDXRef-Package-hello-server-src', 'name': 'hello-server-src', 'versionInfo': '0.1.0', 'filesAnalyzed': False, 'licenseDeclared': 'Apache-2.0', 'licenseConcluded': 'Apache-2.0', 'downloadLocation': 'NONE', 'copyrightText': 'NOASSERTION', 'checksums': [], 'externalRefs': [{'referenceCategory': 'PACKAGE-MANAGER', 'referenceLocator': 'pkg:deb/debian/libselinux1-dev@3.1-3?arch=s390x', 'referenceType': 'purl'}]}, {'id': 'SPDXRef-Package-SPDXRef-Package-cargo-hyper-0.14', 'name': 'hyper', 'versionInfo': '0.14', 'filesAnalyzed': False, 'licenseDeclared': 'NOASSERTION', 'licenseConcluded': 'MIT', 'downloadLocation': 'https://github.com/rust-lang/crates.io-index', 'copyrightText': 'NOASSERTION', 'checksums': [{'algorithm': 'SHA256', 'checksumValue': '02c929dc5c39e335a03c405292728118860721b10190d98c2a0f0efd5baafbac'}], 'externalRefs': [{'referenceCategory': 'PACKAGE-MANAGER', 'referenceLocator': 'pkg:cargo/hyper@0.14', 'referenceType': 'purl'}]}, {'id': 'SPDXRef-Package-SPDXRef-Package-cargo-tokio-1', 'name': 'tokio', 'versionInfo': '1.19.2', 'filesAnalyzed': False, 'licenseDeclared': 'NOASSERTION', 'licenseConcluded': 'MIT', 'downloadLocation': 'https://github.com/rust-lang/crates.io-index', 'copyrightText': 'NOASSERTION', 'checksums': [{'algorithm': 'SHA256', 'checksumValue': 'c51a52ed6686dd62c320f9b89299e9dfb46f730c7a48e635c19f21d116cb1439498cebd51a4483d6e68c2fc62d27008252fa4f7b'}], 'externalRefs': [{'referenceCategory': 'PACKAGE-MANAGER', 'referenceLocator': 'pkg:cargo/tokio@1.19.2', 'referenceType': 'purl'}]}, {'id': 'SPDXRef-Package-SPDXRef-Package-cargo-pretty-env-logger-0.4.0', 'name': 'pretty_env_logger', 'versionInfo': '0.4.0', 'filesAnalyzed': False, 'licenseDeclared': 'NOASSERTION', 'licenseConcluded': 'MIT OR Apache-2.0', 'downloadLocation': 'NONE', 'copyrightText': 'NOASSERTION', 'checksums': [{'algorithm': 'SHA256', 'checksumValue': '926d36b9553851b8b0005f1275891b392ee4d2d833852c417ed025477350fb9d'}], 'externalRefs': [{'referenceCategory': 'PACKAGE-MANAGER', 'referenceLocator': 'pkg:cargo/pretty_env_logger@0.4.0', 'referenceType': 'purl'}]}]
+# Relationships: [{'source_id': 'SPDXRef-Package-hello-server-src', 'type': 'DEPENDS_ON', 'target_id': 'SPDXRef-Package-SPDXRef-Package-cargo-pretty-env-logger-0.4.0'}, {'source_id': 'SPDXRef-Package-hello-server-src', 'type': 'DEPENDS_ON', 'target_id': 'SPDXRef-Package-SPDXRef-Package-cargo-tokio-1'}, {'source_id': 'SPDXRef-Package-hello-server-src', 'type': 'DEPENDS_ON', 'target_id': 'SPDXRef-Package-SPDXRef-Package-cargo-hyper-0.14'}, {'source_id': 'SPDXRef-File-hello-server', 'type': 'GENERATED_FROM', 'target_id': 'SPDXRef-Package-hello-server-src'}, {'source_id': 'SPDXRef-DOCUMENT', 'type': 'DESCRIBES', 'target_id': 'SPDXRef-Package-hello-server-src'}, {'source_id': 'SPDXRef-DOCUMENT', 'type': 'DESCRIBES', 'target_id': 'SPDXRef-File-hello-server'}]
