@@ -29,14 +29,10 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 To use the vulnerability analysis, extract the archives
 ```bash
-csci-435-24_p3_sbom_viz\Code\sbom_viz\sbom_viz\security_scanning_tools\trivy_0.57.0_windows-64bit.zip
+csci-435-24_p3_sbom_viz\Code\sbom_viz\sbom_viz\security_scanning_tools\trivy_0.57.1_windows-64bit.zip
 csci-435-24_p3_sbom_viz\Code\sbom_viz\sbom_viz\security_scanning_tools\bomber_0.5.1_windows_amd64.tar.gz
 ```
-into 
-```bash
-security_scanning_tools\executables\trivy_0.57.0_windows-64bit\trivy.exe
-security_scanning_tools\executables\bomber_0.5.1_windows_amd64\bomber.exe
-```
+into a folder of your choosing, and place that folder into your environment variables. To confirm that the commands `trivy` and `bomber` work, put `trivy -v` and `bomber -v` into the terminal, respectively. These commands should return the version of trivy and bomber.
 
 To run the Django project locally, navigate to the sbom_viz directory in your terminal:
 
