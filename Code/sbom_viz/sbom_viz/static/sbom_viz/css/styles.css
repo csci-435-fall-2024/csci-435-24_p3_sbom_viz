@@ -228,6 +228,10 @@ rect#node-container.node { /* Large rect node container */
   text-align: center;
 }
 
+.hidden {
+  opacity: 0;
+}
+
 .bold {
   font-weight: bold;
 }
