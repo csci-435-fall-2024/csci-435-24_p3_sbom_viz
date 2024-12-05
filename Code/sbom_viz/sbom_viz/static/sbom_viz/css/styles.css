@@ -237,7 +237,7 @@ rect#node-container.node { /* Large rect node container */
 }
 
 /* vulnerabilities page */
-#top-view {
+.analysis-content {
   margin-top: 20px;
   display: flex;
   flex-direction: row;
