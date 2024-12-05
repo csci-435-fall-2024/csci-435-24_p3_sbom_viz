@@ -63,6 +63,7 @@ async function loadData() {
       */
 
     // Set the dimensions and margins of the diagram
+
     var margin = {top: 50, right: 400, bottom: 30, left: 90},
         width = 1000 - margin.left - margin.right,
         height = 1000 - margin.top - margin.bottom;
@@ -70,13 +71,27 @@ async function loadData() {
     // append the svg object to the body of the page
     // appends a 'group' element to 'svg'
     // moves the 'group' element to the top left margin
+    // ** this [svg] var actually refers to the appended 'g'
     var svg = d3.select("#tree-svg-container").append("svg")
-    .attr("id", "tree-svg")
-    .attr("width", width + margin.right + margin.left)
-        .attr("height", height + margin.top + margin.bottom)
+      .attr("id", "tree-svg")
+      .attr("width", width + margin.right + margin.left)
+      .attr("height", height + margin.top + margin.bottom)
         .append("g")
-        .attr("transform", "translate("
+          .attr("transform", "translate("
               + margin.left + "," + margin.top + ")");
+    
+    // Set up zoom behavior
+    const zoom = d3.zoom()
+      .scaleExtent([0.5, 5]) // Minimum and maximum zoom scale
+      .on("zoom", (event) => {
+        svg.attr("transform", event.transform); // Apply zoom and pan to the group
+      });
+
+    // Attach zoom to the SVG
+    d3.select('#tree-svg').call(zoom);
+
+    // Add border around bounding #tree-svg so the user can see where the borders are
+    d3.select('#tree-svg').style('border', '3px dashed lightgray')
     
     var i = 0,
         duration = 750, // in milliseconds
