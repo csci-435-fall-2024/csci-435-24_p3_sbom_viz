@@ -11,6 +11,8 @@ export async function getLicenseData() {
 
     try {
         // store the cleaned license names at /licenses-clean/
+        // POST body format:
+        //      {"licenses":["MIT License","GPL-3.0","Apache-2.0"]}
         const response = await fetch("http://127.0.0.1:8000/licenses-clean/", {
             method: "POST",
             body: JSON.stringify({licenses: cleaned_licenses})
@@ -18,12 +20,12 @@ export async function getLicenseData() {
         if (!response.ok){
             throw new Error("ERROR - licenses-clean");
         }
-        // if no error, then the response is the classification in the format:
+        // if no error, then the response is the classification in this format:
         //      [{'license': 'Apache-2.0', 'restrictiveness': 'notice'}, 
         //      {'license': 'MIT', 'restrictiveness': 'notice'}, 
         //       ...]
         const json = await response.json();
-        console.log("License classifications: ", json);      
+        // do something with this JSON
     }
     catch (error) {
         console.log(error);

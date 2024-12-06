@@ -16,7 +16,6 @@ def process_with_go_script(cleaned_licenses):
         if result.returncode == 0:
             # Parse the JSON response from the Go script
             response_data = json.loads(result.stdout)
-            print(response_data)
             return response_data
         else:
             # If the Go script failed, return an error message

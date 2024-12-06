@@ -150,15 +150,7 @@ def home(request):
     else:
         pass
         #return render(request, 'sbom_viz/index.html')    
-'''
-Deprecated - previously, fileInputPage.js would submit an HttpResponse to 127... /data.json to retrieve tree.
-Now, it queries 127... /tree/ and receives a JsonResponse.
 
-# Used by D3 to gather data for tree
-def json(request):
-    return render(request, 'sbom_viz/data.json')
-'''
-    
 '''
 Builds and returns the Tree
 '''
@@ -262,6 +254,10 @@ def get_license(request):
     global sbom_parser
     return JsonResponse(data=sbom_parser.get_license_information(), json_dumps_params={"indent": 4})
 
+# Called from license_data.js : 
+#   Receives all the licenses present in the SBOM
+#   Processes them and obtains a restrictiveness classification
+#   for each license, then stores that information in the /licenses-clean/ endpoint
 @csrf_exempt
 def get_licenses_clean(request):
     if request.method == 'POST':
@@ -272,6 +268,7 @@ def get_licenses_clean(request):
 
             # Process the licenses with the Go script
             result = process_with_go_script(cleaned_licenses)
+            print(result)
 
             if 'error' in result:
                 # Return an error response if the Go script failed
