@@ -3,8 +3,36 @@ export async function getLicenseData() {
     const response = await fetch("http://127.0.0.1:8000/license/");
     const json = await response.json();
     const result = processLicenseData(json["distribution"]); // convert to a frequency list
+
+    /*
+     * License classification code
+     */
+    let cleaned_licenses = result.map(item => item["license name"]); // get just the license name
+
+    try {
+        // store the cleaned license names at /licenses-clean/
+        const response = await fetch("http://127.0.0.1:8000/licenses-clean/", {
+            method: "POST",
+            body: JSON.stringify({licenses: cleaned_licenses})
+        });
+        if (!response.ok){
+            throw new Error("ERROR - licenses-clean");
+        }
+        // if no error, then the response is the classification in the format:
+        //      [{'license': 'Apache-2.0', 'restrictiveness': 'notice'}, 
+        //      {'license': 'MIT', 'restrictiveness': 'notice'}, 
+        //       ...]
+        const json = await response.json();
+        console.log("License classifications: ", json);      
+    }
+    catch (error) {
+        console.log(error);
+    }
+    
     return result;
 }
+
+
   
 // Process the extracted license data to convert it to the proper format
 function processLicenseData(inputData) {
