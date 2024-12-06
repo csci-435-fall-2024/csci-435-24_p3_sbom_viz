@@ -2,68 +2,54 @@ import "https://d3js.org/d3.v7.min.js";
 
 import { getLicenseData } from './license_data.js';
 
-/*var data = [
-    { "license name" : 'license1', 'version':'1.0', "count" : 4 },
-    { "license name" : 'license2', 'version':'1.0', "count" : 17 },
-    { "license name" : 'license3', 'version':'1.0', "count" : 2 },
-    { "license name" : 'license4', 'version':'1.0', "count" : 1 },
-    { "license name" : 'license5', 'version':'1.0', "count" : 3 },
-    { "license name" : 'license6', 'version':'1.0', "count" : 7 },
-    { "license name" : 'license7', 'version':'1.0', "count" : 9 },
-    { "license name" : 'license8', 'version':'1.0', "count" : 1 },
-    { "license name" : 'license9', 'version':'1.0', "count" : 8 },
-    { "license name" : 'license10', 'version':'1.0', "count" : 0 },
-    { "license name": 'other', 'version':'n/a', "count": 10 }, // for unidentifiable or missing license types
-  ]*/
-
   function tabulate(data, columns) {
-	var table = d3.select('#license-table').append('table')
-        .style("border", "2px black solid")
-        .style("border-collapse", "collapse");
-	var thead = table.append('thead');
-	var	tbody = table.append('tbody');
+    var table = d3.select('#license-table').append('table')
+          .style("border", "2px black solid")
+          .style("border-collapse", "collapse");
+    var thead = table.append('thead');
+    var	tbody = table.append('tbody');
 
-	// append the header row
-	thead.append('tr')
-	  .selectAll('th')
-	  .data(columns).enter()
-	  .append('th')
-	    .text(function (d) { return d; })
-        .style("border", "1px black solid")
-        .style("padding", "5px")
-        .style("background-color", "lightgray")
-        .style("font-weight", "bold")
-        .style("text-transform", "uppercase");
+    // append the header row
+    thead.append('tr')
+      .selectAll('th')
+      .data(columns).enter()
+      .append('th')
+        .text(function (d) { return d; })
+          .style("border", "1px black solid")
+          .style("padding", "5px")
+          .style("background-color", "lightgray")
+          .style("font-weight", "bold")
+          .style("text-transform", "uppercase");
 
-	// create a row for each object in the data
-	var rows = tbody.selectAll('tr')
-	  .data(data)
-	  .enter()
-	  .append('tr')
-      
-	// create a cell in each row for each column
-	var cells = rows.selectAll('td')
-	  .data(function (row) {
-	    return columns.map(function (column) {
-	      return {column: column, value: row[column]};
-	    });
-	  })
-	  .enter()
-	  .append('td')
-	    .text(function (d) { return d.value; })
-        .style("border", "1px black solid")
-        .style("padding", "5px")
-        .on("mouseover", function(){
-            d3.select(this).style("background-color", "powderblue");
-        })
-        .on("mouseout", function(){
-            d3.select(this).style("background-color", "white");
+    // create a row for each object in the data
+    var rows = tbody.selectAll('tr')
+      .data(data)
+      .enter()
+      .append('tr')
+        
+    // create a cell in each row for each column
+    var cells = rows.selectAll('td')
+      .data(function (row) {
+        return columns.map(function (column) {
+          return {column: column, value: row[column]};
         });
+      })
+      .enter()
+      .append('td')
+        .text(function (d) { return d.value; })
+          .style("border", "1px black solid")
+          .style("padding", "5px")
+          .on("mouseover", function(){
+              d3.select(this).style("background-color", "powderblue");
+          })
+          .on("mouseout", function(){
+              d3.select(this).style("background-color", "white");
+          });
 
   return table;
 }
 
-async function setUpTable() {
+async function setUpFrequencyTable() {
 
   const data = (await getLicenseData()).map(entry => ({"license name": entry["license name"], "count": entry["count"]}));
   console.log(data);
@@ -82,12 +68,40 @@ async function setUpTable() {
   let num_licenses = data.reduce((acc, license) => ((license["license name"] !== "other") ? acc + 1 : acc), 0); // count all rows except for the "other" row, if it is present
   document.getElementById("number-distinct-licenses").textContent = num_licenses;
 
-  /*
-  if data comes in as csv:
-  d3.csv("path/to/data.csv", function(data) {
-    tabulate(data, ["name", "age"]);
-  });
-  */
 }
 
-setUpTable();
+async function setUpRestrictivenessTable(){
+
+  const licenses = await getLicenseData("restrictiveness");
+
+  console.log("LICENSES",licenses);
+
+  function updateTable(filter = 'all') {
+    const tableBody = d3.select('#licenseTable tbody');
+    tableBody.html(''); // Clear existing table rows
+
+    // Filter data based on restrictiveness
+    const filteredData = licenses.filter(d => {
+      const restrictiveness = d.restrictiveness.toLowerCase() || 'unknown'; // Treat empty string as 'unknown'
+      return filter === 'all' || restrictiveness === filter.toLowerCase();
+    });    
+
+    filteredData.forEach(d => {
+      const row = tableBody.append('tr');
+      row.append('td').text(d.license);
+      row.append('td').text(d.restrictiveness || 'Unknown');
+    });
+  }
+
+  // Initial table load
+  updateTable();
+
+  // Filter table based on dropdown selection
+  d3.select('#restrictivenessFilter').on('change', function() {
+    const filter = d3.select(this).property('value').toLowerCase();
+    updateTable(filter);
+  });
+}
+
+setUpFrequencyTable();
+setUpRestrictivenessTable();

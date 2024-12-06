@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="./../../static/sbom_viz/css/styles.css">
@@ -33,6 +35,31 @@
                 <div id="license-table" class="table"></div>
                 <a id="license-documentation-link" href="https://spdx.org/licenses/" target="_" class="hyperlink">Learn more about these licenses</a>
             </div>
+
+            <div id="license-restrictiveness-container">
+                <h2>License Restrictiveness</h1>
+                    <select id="restrictivenessFilter">
+                        <option value="all">All</option>
+                        <option value="forbidden">Forbidden</option>
+                        <option value="reciprocal">Reciprocal</option>
+                        <option value="notice">Notice</option>
+                        <option value="permissive">Permissive</option>                       
+                        <option value="unencumbered">Unencumbered</option>
+                        <option valie="unknown">Unknown</option>
+                    </select>
+                    <table id="licenseTable">
+                        <thead>
+                        <tr>
+                            <th>License</th>
+                            <th>Restrictiveness</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <!-- Data will be dynamically populated here -->
+                        </tbody>
+                    </table>
+            </div>
+
         </div>
     </div>
 </body>
