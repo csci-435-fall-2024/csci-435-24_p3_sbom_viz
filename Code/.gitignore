@@ -21,3 +21,6 @@ db.sqlite3
 executables/
 sbom.json
 # ^^^ in case not deleted
+
+go.mod
+go.sum
