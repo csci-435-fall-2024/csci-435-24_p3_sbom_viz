@@ -251,7 +251,7 @@ rect#node-container.node { /* Large rect node container */
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: space-evenly;
 }
 
 #severity-container{
@@ -264,12 +264,7 @@ rect#node-container.node { /* Large rect node container */
   padding-left: 20px;
 }
 
-#distribution-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
+
 
 /* Shorten distance between "Distribution" and pie chart*/
 .distribution h2 {

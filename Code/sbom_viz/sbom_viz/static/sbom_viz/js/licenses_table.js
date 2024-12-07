@@ -74,8 +74,6 @@ async function setUpRestrictivenessTable(){
 
   const licenses = await getLicenseData("restrictiveness");
 
-  console.log("LICENSES",licenses);
-
   function updateTable(filter = 'all') {
     const tableBody = d3.select('#licenseTable tbody');
     tableBody.html(''); // Clear existing table rows
@@ -84,13 +82,41 @@ async function setUpRestrictivenessTable(){
     const filteredData = licenses.filter(d => {
       const restrictiveness = d.restrictiveness.toLowerCase() || 'unknown'; // Treat empty string as 'unknown'
       return filter === 'all' || restrictiveness === filter.toLowerCase();
-    });    
-
-    filteredData.forEach(d => {
-      const row = tableBody.append('tr');
-      row.append('td').text(d.license);
-      row.append('td').text(d.restrictiveness || 'Unknown');
     });
+
+    // Create table rows and cells with stylings
+    const rows = tableBody.selectAll('tr')
+      .data(filteredData)
+      .enter()
+      .append('tr');
+
+    // Append cells to each row
+    rows.selectAll('td')
+      .data(d => [d.license, d.restrictiveness || 'Unknown']) // Map data to table cells
+      .enter()
+      .append('td')
+      .text(d => d)
+      .style("border", "1px black solid")
+      .style("padding", "5px")
+      .on("mouseover", function() {
+        d3.select(this).style("background-color", "powderblue");
+      })
+      .on("mouseout", function() {
+        d3.select(this).style("background-color", "white");
+      });
+
+    // Style header row
+    d3.selectAll('thead th')
+      .style("border", "1px black solid")
+      .style("padding", "5px")
+      .style("background-color", "lightgray")
+      .style("font-weight", "bold")
+      .style("text-transform", "uppercase");
+
+    // Style the table
+    d3.select('#licenseTable')
+      .style("border", "2px black solid")
+      .style("border-collapse", "collapse");
   }
 
   // Initial table load
