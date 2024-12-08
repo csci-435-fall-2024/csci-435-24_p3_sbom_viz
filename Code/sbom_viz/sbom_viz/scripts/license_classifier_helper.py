@@ -1,13 +1,20 @@
 import subprocess
 import json
 import os
+import logging
+
+logging.basicConfig(
+    level=logging.DEBUG,
+    format="%(asctime)s\t%(levelname)s\t%(message)s",
+    datefmt="%Y-%m-%dT%H:%M:%S%z"
+)
 
 def process_with_go_script(cleaned_licenses):
 
     # assume this is the first time running
     if not (os.path.isfile(os.path.join(os.getcwd(), "go.mod"))):
 
-        print("go.mod not found - installing license classifier library and init module...")
+        logging.debug("go.mod not found - installing license classifier library and init module...")
 
         # init Go
         subprocess.run(
@@ -21,7 +28,7 @@ def process_with_go_script(cleaned_licenses):
             shell=True
         )
 
-        print("Finished!")
+        logging.debug("Finished!")
 
     try:
         cleaned_json = json.dumps(cleaned_licenses)

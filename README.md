@@ -4,6 +4,8 @@
 _csci-435-24_p3_sbom_viz_
 
 ## Installation
+Python *(parsing, security analysis)* and Go *(license classification)* are required.
+
 Clone the repo, and run the following lines to create a virtual environment:
 
 ```bash
@@ -98,5 +100,6 @@ After an SBOM has been uploaded, our analysis of the licenses present in the SBO
 - We planned to use `trivy` for this, because it has built in license analysis, but it was not able to parse the licenses as they are in most SBOM files. Most licenses are in the form "LicenseRef-LICENSE-12345", and trivy does not recognize that format.
 - We previously dealt with this problem in `license_data.js`, where we strip the license data found from the `/license/` endpoint of any extraneous information to display it on the **Licenses** page.
 - To remedy the issue with trivy, this cleaned license information is piped into the same tool that trivy uses - Google's License Classifier, which can be found in `scripts/license_classifier.go`.
+- When undergoing license classification for the first time, it may take a second to install the required libraries.
 
 ### Planned features
