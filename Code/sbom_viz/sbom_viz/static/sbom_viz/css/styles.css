@@ -123,7 +123,33 @@ rect#node-container.node { /* Large rect node container */
   border-radius: 2px;
   dominant-baseline: middle; /* Helps to center text in rect */
 }
+.search {
 
+  input {
+    margin-top: 5px;
+  }
+
+  #autocomplete-suggestions {
+    position: absolute; 
+    background-color: #f8f9fa; 
+    border: 1px solid #dee2e6; 
+    max-height: 200px; 
+    overflow-y: auto;
+    z-index: 100; /* Assigns a higher priority to the suggestions, so they are placed above the tree container */
+    box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Each row of the autocomplete suggestions */
+  .suggestion {
+    padding: 5px;
+    cursor: pointer;
+  }
+
+  .suggestion:hover {
+    background-color: #f0f0f0;
+  }
+
+}
 
 /* Sidebar stuff */
 .sidebar {
@@ -206,6 +232,11 @@ rect#node-container.node { /* Large rect node container */
 #tree-svg-container {
   position: relative;
   top: 60px;
+
+  #tree-svg{
+    border: 3px dashed lightgray;
+    border-radius: 5px;
+  }
 }
 
 /* Represents the page content with empty space above it to lower the body information so it is not below the navigation bar. */

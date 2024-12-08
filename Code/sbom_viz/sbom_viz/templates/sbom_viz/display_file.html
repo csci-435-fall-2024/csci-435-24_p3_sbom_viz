@@ -22,6 +22,11 @@
     <div class="controls">
         <button id="expand-all" onclick="expandAllNodes()">Expand All Nodes</button>
         <button id="collapse-all" onclick="collapseAllNodes()">Collapse All Nodes</button>
+        <button id="focus-root-button">Focus Root</button>
+        <div class="search">
+            <input type="text" id="node-search" placeholder="Search for a node..." />
+            <div id="autocomplete-suggestions"></div>
+          </div>
     </div>
     <script>
         // Wait for the module to load before creating the FileDisplayPage instance

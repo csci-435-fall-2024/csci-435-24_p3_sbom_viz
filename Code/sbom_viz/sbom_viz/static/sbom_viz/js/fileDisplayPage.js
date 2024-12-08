@@ -68,9 +68,6 @@ async function loadData() {
     const headerHeight = document.querySelector("div.header").getBoundingClientRect().height;
     const controlsHeight = document.querySelector("div.controls").getBoundingClientRect().height;
 
-    console.log(window.innerWidth, sidebarWidth);
-    console.log(window.innerHeight, headerHeight, controlsHeight)
-
     var margin = {top: 50, right: 50, bottom: 50, left: 50},
         width = window.innerWidth - margin.left - margin.right - sidebarWidth,
         height = window.innerHeight - margin.top - margin.bottom - headerHeight - controlsHeight;
@@ -88,17 +85,14 @@ async function loadData() {
               + margin.left + "," + margin.top + ")");
     
     // Set up zoom behavior
-    var currentZoomLevel = 1;
     var currentTransform = d3.zoomIdentity;
     const zoom = d3.zoom()
       .scaleExtent([0.1, 3]) // Minimum and maximum zoom scale
       .on("zoom", (event) => {
-        currentZoomLevel = event.transform.k;
         currentTransform = event.transform;
         svg.attr("transform", currentTransform); // Apply zoom and pan to the g element
       });
 
-    console.log(width,height);
 
     // Attach zoom to the SVG
     d3.select('#tree-svg').call(zoom)
@@ -106,13 +100,13 @@ async function loadData() {
         d3.zoomIdentity.translate(
           width / 2 ,
           height / 2)
-            .scale(currentZoomLevel)
+            .scale(currentTransform.k) // scale to current zoom level
       );
 
-    // Add border around bounding #tree-svg so the user can see where the borders are
-    d3.select('#tree-svg').style('border', '3px dashed lightgray')
     var i = 0,
         duration = 750, // in milliseconds
+        nodeList,       // flattened list of all nodes, used for searching
+        nodeNames,      // list of node names, used for searching
         root;
     
     /*
@@ -123,12 +117,14 @@ async function loadData() {
     let node_height = 100;
     
     // Declares a tree layout and assign the size
-    var treemap = d3.tree().nodeSize([node_width,node_height])//size([height, width]);
+    var treemap = d3.tree().nodeSize([node_width,node_height]);
     
-    // Assigns parent, children, height, depth
-    // Currently loads JSON data from this link,
-    // The commented out line below would allow it to use the
-    // Raw JSON defined above (treeData)
+    /*
+     * Assigns parent, children, height, depth
+     * Currently loads JSON data from this link,
+     * The commented out line below would allow it to use the
+     * Raw JSON defined above (treeData)
+     */
     d3.json("http://127.0.0.1:8000/tree").then(async function(data){
         // Wait for relationship and id data to load first
         await loadData();
@@ -138,16 +134,119 @@ async function loadData() {
         root.x0 = height / 2;
         root.y0 = 0;
 
-        // Collapse after the second level
+        // Recursively collapse after the second level
         root.children.forEach(collapse);
         
         update(root);
-        //resizeCanvas(treemap(root), node_width, node_height);
+
+        // Initialize the list of node names for autocomplete
+        nodeList = flattenTree(root); 
+        nodeNames = nodeList.map(node => node.data.name); 
     });
 
+    // Attach the "Focus Root" button handler
+    d3.select("#focus-root-button").on("click", () => {
+      focusNode(root);
+    });
+
+    /* ***** START OF SEARCHING CODE ***** */
+
+    /*
+     * Flatten the tree to get a list of all nodes
+     * Ran once, after tree data is loaded from /tree/
+     */
+    function flattenTree(node, nodeList = []) {
+      nodeList.push(node);
+      if (node.children || node._children) {
+        (node.children || node._children).forEach(child => flattenTree(child, nodeList));
+      }
+      return nodeList;
+    }
+
     /* 
-     * Helper function:: 
-     * Collapse the level directly under the node [d].
+     * Handle input for autocomplete
+     * When the user types something, gather all node names
+     * that match this search and append a div for each. When
+     * a search suggestion is clicked:
+     *  1) Expand the tree to that node
+     *  2) Center that node in the tree box
+     *  3) Add the corresponding card to the sidebar
+     * Then clear the search box
+     */
+    const searchInput = d3.select("#node-search");
+    const suggestionBox = d3.select("#autocomplete-suggestions");
+
+    searchInput.on("input", function () {
+      const query = this.value.toLowerCase();
+      suggestionBox.html(""); // clear previous suggestions
+
+      if (query) {
+        const matches = nodeNames.filter(name => name.toLowerCase().includes(query));
+        matches.forEach(name => {
+          suggestionBox.append("div")
+            .attr("class", "suggestion")
+            .text(name)
+            .on("click", function () {
+              const selectedNode = nodeList.find(node => node.data.name === name);
+              if (selectedNode) {
+                expandToNode(selectedNode);
+                focusNode(selectedNode);
+                addCard(selectedNode); // add clicked search result to the sidebar
+              }
+              suggestionBox.html(""); // clear suggestions
+              searchInput.property("value", ""); // clear search input
+            });
+        });
+      }
+    });
+
+    /*
+     * Function to expand the tree to a specific node
+     * Expand upwards while there is a parent
+     */
+    function expandToNode(node) {
+      let current = node;
+      while (current.parent) {
+        current = current.parent;
+        if (current._children) {
+          current.children = current._children; // expand hidden children
+          current._children = null;
+        }
+      }
+      update(current);
+    }
+
+    /*
+     * Function to focus a specific node by translating
+     * so that the node is in the center of the screen.
+     * Called when clicking the "Focus Root" button (with node = root)
+     * or when selecting a node in the search box.
+     */
+    function focusNode(node) {
+      const containerWidth = d3.select('#tree-svg').node().clientWidth;
+      const containerHeight = d3.select('#tree-svg').node().clientHeight;
+
+      // Calculate the container's center
+      const centerX = containerWidth / 2;
+      const centerY = containerHeight / 2;
+
+      const translateX = centerX - node.x * currentTransform.k; 
+      const translateY = centerY - node.y * currentTransform.k; 
+
+      // Update the view to center the node
+      d3.select('#tree-svg')
+        .transition()
+        .duration(duration)
+        .call(
+          zoom.transform,
+          d3.zoomIdentity.translate(translateX, translateY).scale(currentTransform.k) // k = zoom level
+        );
+    }
+    /* ***** END OF SEARCHING CODE ***** */
+
+    /* 
+     * -- Helper function --
+     * Recursively collapse the levels under the node [d].
      * Used when initially building the tree (just above),
      * and in the collapseAllNodes() function
      */
@@ -164,10 +263,9 @@ async function loadData() {
     }
 
     /* 
-     * Helper function:: 
-     *    Expand the level directly under the node [d]
-     *    Used when initially building the tree (just above),
-     *    and in the collapseAllNodes() function.
+     * -- Helper function --
+     * Recursively expand the levels under the node [d]
+     * Called in the collapseAllNodes() function.
      * 
      * A note on D3 - 
      *    d._children is the set of hidden children of [d],
@@ -191,7 +289,6 @@ async function loadData() {
      * Whether or not [start] has visible children,
      * go through its children and try to collapse them.
      * Correct any '+'/'-' that may need to be updated after this change.
-     * 
      */
     function collapseAllNodes(start = root){
       if (start.children) 
@@ -227,13 +324,13 @@ async function loadData() {
      */
     function collapsedChildExists(start){
 
-      if (!start.children && !start._children)
-        return;
+      if (!start.children && !start._children) // edge case - this is a leaf node
+        return false;
 
-      if (start._children) // the node has collapsed children
+      else if (start._children) // the node has collapsed children
         return true;
 
-      if (start.children){
+      else if (start.children){ // recursively check children
         for (let child of start.children){
           if (collapsedChildExists(child))
             return true;
