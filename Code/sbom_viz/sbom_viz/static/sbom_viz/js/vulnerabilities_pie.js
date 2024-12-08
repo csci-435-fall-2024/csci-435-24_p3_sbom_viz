@@ -103,6 +103,7 @@ async function setUpSeveritySummary(){
     });
 } // setUpSeveritySummary()
 
-let data = await getVulnerabilityDistribution();
+let data = await getVulnerabilityDistribution()
+data = data.slice(0,10);
 setUpPieChart();
 setUpSeveritySummary();

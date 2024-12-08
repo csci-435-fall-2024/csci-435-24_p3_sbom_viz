@@ -5,7 +5,7 @@ async function setUpPieChart() {
     let data_full = await getLicenseData();
 
     let data = data_full.map(entry => ({"license": entry["license"], "count": entry["count"]})).filter(license => license["license"] !== "other");
-    
+    data = data.slice(0,10);
     // Inspired by https://d3-graph-gallery.com/graph/pie_annotation.html
     const width = 500;
     const height = 500;
