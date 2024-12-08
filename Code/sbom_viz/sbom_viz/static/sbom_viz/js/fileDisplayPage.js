@@ -68,14 +68,28 @@ async function loadData() {
     const headerHeight = document.querySelector("div.header").getBoundingClientRect().height;
     const controlsHeight = document.querySelector("div.controls").getBoundingClientRect().height;
 
+    /*
+     * The #tree-svg-container is all the space to the left 
+     * of the sidebar, under the header.
+     * To center the #tree-svg inside of it, set its width
+     * dynamically based on the window size.
+     */
+    document.getElementById("tree-svg-container")
+      .setAttribute("style", `width:${
+            window.innerWidth - sidebarWidth - 10 // <- accounting for sidebar shadow
+      }px`)
+
+    // these sizes refer to the actual "#tree-svg"
     var margin = {top: 50, right: 50, bottom: 50, left: 50},
         width = window.innerWidth - margin.left - margin.right - sidebarWidth,
         height = window.innerHeight - margin.top - margin.bottom - headerHeight - controlsHeight;
-    
-    // append the svg object to the body of the page
-    // appends a 'group' element to 'svg'
-    // moves the 'group' element to the top left margin
-    // ** this [svg] var actually refers to the appended 'g'
+
+    /*
+     * append the svg object to the body of the page
+     * appends a 'group' element to 'svg'
+     * moves the 'group' element to the top left margin
+     * ** this [svg] var actually refers to the appended 'g'
+     */
     var svg = d3.select("#tree-svg-container").append("svg")
       .attr("id", "tree-svg")
       .attr("width", width)
@@ -99,7 +113,7 @@ async function loadData() {
       .call(zoom.transform,
         d3.zoomIdentity.translate(
           width / 2 ,
-          height / 2)
+          height / 4) // slightly higher vertically
             .scale(currentTransform.k) // scale to current zoom level
       );
 
@@ -228,7 +242,7 @@ async function loadData() {
 
       // Calculate the container's center
       const centerX = containerWidth / 2;
-      const centerY = containerHeight / 2;
+      const centerY = containerHeight / 4; // put the node slightly towards the top rather than directly in the middle
 
       const translateX = centerX - node.x * currentTransform.k; 
       const translateY = centerY - node.y * currentTransform.k; 

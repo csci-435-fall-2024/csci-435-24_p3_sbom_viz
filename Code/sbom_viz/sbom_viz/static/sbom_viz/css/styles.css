@@ -91,7 +91,6 @@ form {
     border-radius: 6px;
     width: 325px;
     padding: 15px;
-
 }
 
 rect#node-container.node { /* Large rect node container */
@@ -122,33 +121,6 @@ rect#node-container.node { /* Large rect node container */
   border: 2px solid steelblue;
   border-radius: 2px;
   dominant-baseline: middle; /* Helps to center text in rect */
-}
-.search {
-
-  input {
-    margin-top: 5px;
-  }
-
-  #autocomplete-suggestions {
-    position: absolute; 
-    background-color: #f8f9fa; 
-    border: 1px solid #dee2e6; 
-    max-height: 200px; 
-    overflow-y: auto;
-    z-index: 100; /* Assigns a higher priority to the suggestions, so they are placed above the tree container */
-    box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
-  }
-  
-  /* Each row of the autocomplete suggestions */
-  .suggestion {
-    padding: 5px;
-    cursor: pointer;
-  }
-
-  .suggestion:hover {
-    background-color: #f0f0f0;
-  }
-
 }
 
 /* Sidebar stuff */
@@ -230,8 +202,9 @@ rect#node-container.node { /* Large rect node container */
 }
 
 #tree-svg-container {
-  position: relative;
-  top: 60px;
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
 
   #tree-svg{
     border: 3px dashed lightgray;
@@ -338,7 +311,52 @@ rect#node-container.node { /* Large rect node container */
 }
 
 .controls {
+
   margin-top: 75px;
+  
+  button { 
+    padding: 4px;
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    opacity: 0.7;
+  }
+  button:hover {
+    background-color: #0b5ed7;
+  }
+
+  .search {
+
+    input {
+      margin-top: 5px;
+    }
+  
+    #autocomplete-suggestions {
+      position: absolute; 
+      background-color: #f8f9fa; 
+      border: 1px solid #dee2e6; 
+      max-height: 200px; 
+      overflow-y: auto;
+      z-index: 100; /* Assigns a higher priority to the suggestions, so they are placed above the tree container */
+      box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+    
+      /* Each row of the autocomplete suggestions */
+      .suggestion {
+        padding: 5px;
+        cursor: pointer;
+        font-size: 0.75rem;
+
+      }
+  
+      .suggestion:hover {
+        background-color: #f0f0f0;
+      }
+    }
+  }
 }
 
 .disabled-nav-link {
