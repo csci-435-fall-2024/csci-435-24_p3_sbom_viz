@@ -1,48 +1,14 @@
 // Extract JSON of license data from the license endpoint
-export async function getLicenseData(type = "frequency") {
+export async function getLicenseData() {
     const response = await fetch("http://127.0.0.1:8000/license/");
-    const json = await response.json();
-    const result = processLicenseData(json["distribution"]); // convert to a frequency list
+    const freq_json = await response.json();
+    const freq_result = processLicenseData(freq_json["distribution"]); // convert to a frequency list
 
-    console.log(type)
+    const restr_result = await getLicenseRestrictiveness(freq_result);
 
-    if (type == "frequency"){
-        return result;
-    }
-
-    /*
-    * License classification code
-    */
-    else if (type == "restrictiveness"){
-        
-        let cleaned_licenses = result.map(item => item["license name"]); // get just the license name
-
-        try {
-            // store the cleaned license names at /licenses-clean/
-            // POST body format:
-            //      {"licenses":["MIT License","GPL-3.0","Apache-2.0"]}
-            const response = await fetch("http://127.0.0.1:8000/licenses-clean/", {
-                method: "POST",
-                body: JSON.stringify({licenses: cleaned_licenses})
-            });
-            if (!response.ok){
-                throw new Error("ERROR - licenses-clean");
-            }
-            // if no error, then the response is the classification in this format:
-            //      [{'license': 'Apache-2.0', 'restrictiveness': 'notice'}, 
-            //      {'license': 'MIT', 'restrictiveness': 'notice'}, 
-            //       ...]
-            const json = await response.json();
-            return json["restrictiveness"];
-        } // try
-        catch (error) {
-            console.log(error);
-        } 
-    } // elif restrictiveness_data
+    return getCombinedJson({ frequency: freq_result, restrictiveness: restr_result });
 } 
 
-
-  
 // Process the extracted license data to convert it to the proper format
 function processLicenseData(inputData) {
 
@@ -104,9 +70,58 @@ function processLicenseData(inputData) {
     // Step 2: Put each license and its count in the resulting list as an object {license name, count}.
     let processedData = [];
     for (let key in license_types) {
-        processedData.push({"license name" : key, "version": "n/a", "count" : license_types[key]});
+        processedData.push({"license" : key, "version": "n/a", "count" : license_types[key]});
     }
     // Step 3: Sort descending, so most frequent licenses appear at the top.
     processedData.sort((a, b) => b["count"] - a["count"]);
     return processedData;
+}
+
+async function getLicenseRestrictiveness(data) {
+    
+    let cleaned_licenses = data.map(item => item["license"]); // get just the license name
+    var restr_json;
+
+    try {
+        // store the cleaned license names at /licenses-clean/
+        // POST body format:
+        //      {"licenses":["MIT License","GPL-3.0","Apache-2.0"]}
+        const response = await fetch("http://127.0.0.1:8000/licenses-clean/", {
+            method: "POST",
+            body: JSON.stringify({licenses: cleaned_licenses})
+        });
+        if (!response.ok){
+            throw new Error("ERROR - licenses-clean");
+        }
+        // if no error, then the response is the classification in this format:
+        //      [{'license': 'Apache-2.0', 'restrictiveness': 'notice'}, 
+        //      {'license': 'MIT', 'restrictiveness': 'notice'}, 
+        //       ...]
+        restr_json = await response.json();
+        restr_json = restr_json["restrictiveness"];
+    } // try
+
+    catch (error) {
+        console.log(error);
+    } 
+
+    return restr_json;
+}
+
+function getCombinedJson({ frequency, restrictiveness }) {
+    // Combine the frequency list and restrictiveness
+    // into one JSON to be passed to the front end
+    const combined = frequency.map(freq => {
+        // Find the matching restrictiveness object
+        const match = restrictiveness.find(res => res.license === freq["license"]);
+        
+        return {
+          license: freq["license"],
+          //version: freq.version,
+          restrictiveness: match ? match.restrictiveness : "unknown", // Default to 'unknown' if no match
+          count: freq.count
+        };
+      });
+
+    return combined;
 }

@@ -49,40 +49,47 @@ import { getLicenseData } from './license_data.js';
   return table;
 }
 
-async function setUpFrequencyTable() {
 
-  const data = (await getLicenseData()).map(entry => ({"license name": entry["license name"], "count": entry["count"]}));
-  console.log(data);
+async function setUpTable(){
+
+  const licenses = await getLicenseData();
 
   // Calculate percentage composition for each license of total
-  let total_count = data.reduce((acc, license) => acc + license["count"], 0);
-  data.forEach(license => {
+  let total_count = licenses.reduce((acc, license) => acc + license["count"], 0);
+  licenses.forEach(license => {
       license["composition"] = `${(license["count"] / total_count * 100).toFixed(1)}%`
   });
 
-  // render the table
-  data.sort((a,b) => b.count - a.count); // sort by highest value
-  tabulate((data.filter(license => license["license name"] !== "other")).slice(0,10), ['license name', 'count', 'composition']); // table with all columns
+  console.log(licenses);
 
   // Count the number of distinct licenses
-  let num_licenses = data.reduce((acc, license) => ((license["license name"] !== "other") ? acc + 1 : acc), 0); // count all rows except for the "other" row, if it is present
+  // count all rows except for the "other" row, if it is present
+  let num_licenses = licenses.reduce((acc, license) => ((license["license"] !== "other") ? acc + 1 : acc), 0); 
+  // update the number of distinct licenses
   document.getElementById("number-distinct-licenses").textContent = num_licenses;
 
-}
-
-async function setUpRestrictivenessTable(){
-
-  const licenses = await getLicenseData("restrictiveness");
+  const columns = ["License", "Restrictiveness", "Count", "Composition"];
 
   function updateTable(filter = 'all') {
-    const tableBody = d3.select('#licenseTable tbody');
-    tableBody.html(''); // Clear existing table rows
+    const table = d3.select("#licenseTable");
+    table.html('') // Clear existing table 
+    const tableBody = table.append('tbody');
 
     // Filter data based on restrictiveness
     const filteredData = licenses.filter(d => {
       const restrictiveness = d.restrictiveness.toLowerCase() || 'unknown'; // Treat empty string as 'unknown'
       return filter === 'all' || restrictiveness === filter.toLowerCase();
     });
+
+    var thead = table.append("thead");
+
+    // append the header row
+    thead.append('tr')
+      .selectAll('th')
+      .data(columns)
+      .enter()
+      .append('th')
+        .text(function (d) { return d; })
 
     // Create table rows and cells with stylings
     const rows = tableBody.selectAll('tr')
@@ -92,7 +99,11 @@ async function setUpRestrictivenessTable(){
 
     // Append cells to each row
     rows.selectAll('td')
-      .data(d => [d.license, d.restrictiveness || 'Unknown']) // Map data to table cells
+      .data(d => [
+        d.license, 
+        d.restrictiveness || 'Unknown', 
+        d.count,
+        d.composition]) // Map data to table cells
       .enter()
       .append('td')
       .text(d => d)
@@ -110,8 +121,7 @@ async function setUpRestrictivenessTable(){
       .style("border", "1px black solid")
       .style("padding", "5px")
       .style("background-color", "lightgray")
-      .style("font-weight", "bold")
-      .style("text-transform", "uppercase");
+      .style("font-weight", "bold");
 
     // Style the table
     d3.select('#licenseTable')
@@ -129,5 +139,4 @@ async function setUpRestrictivenessTable(){
   });
 }
 
-setUpFrequencyTable();
-setUpRestrictivenessTable();
+setUpTable();
