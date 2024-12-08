@@ -64,9 +64,16 @@ async function loadData() {
 
     // Set the dimensions and margins of the diagram
 
-    var margin = {top: 50, right: 400, bottom: 30, left: 90},
-        width = 1000 - margin.left - margin.right,
-        height = 1000 - margin.top - margin.bottom;
+    const sidebarWidth = document.querySelector("#sidebar").getBoundingClientRect().width;
+    const headerHeight = document.querySelector("div.header").getBoundingClientRect().height;
+    const controlsHeight = document.querySelector("div.controls").getBoundingClientRect().height;
+
+    console.log(window.innerWidth, sidebarWidth);
+    console.log(window.innerHeight, headerHeight, controlsHeight)
+
+    var margin = {top: 50, right: 50, bottom: 50, left: 50},
+        width = window.innerWidth - margin.left - margin.right - sidebarWidth,
+        height = window.innerHeight - margin.top - margin.bottom - headerHeight - controlsHeight;
     
     // append the svg object to the body of the page
     // appends a 'group' element to 'svg'
@@ -74,25 +81,36 @@ async function loadData() {
     // ** this [svg] var actually refers to the appended 'g'
     var svg = d3.select("#tree-svg-container").append("svg")
       .attr("id", "tree-svg")
-      .attr("width", width + margin.right + margin.left)
-      .attr("height", height + margin.top + margin.bottom)
+      .attr("width", width)
+      .attr("height", height)
         .append("g")
           .attr("transform", "translate("
               + margin.left + "," + margin.top + ")");
     
     // Set up zoom behavior
+    var currentZoomLevel = 1;
+    var currentTransform = d3.zoomIdentity;
     const zoom = d3.zoom()
-      .scaleExtent([0.5, 5]) // Minimum and maximum zoom scale
+      .scaleExtent([0.1, 3]) // Minimum and maximum zoom scale
       .on("zoom", (event) => {
-        svg.attr("transform", event.transform); // Apply zoom and pan to the group
+        currentZoomLevel = event.transform.k;
+        currentTransform = event.transform;
+        svg.attr("transform", currentTransform); // Apply zoom and pan to the g element
       });
 
+    console.log(width,height);
+
     // Attach zoom to the SVG
-    d3.select('#tree-svg').call(zoom);
+    d3.select('#tree-svg').call(zoom)
+      .call(zoom.transform,
+        d3.zoomIdentity.translate(
+          width / 2 ,
+          height / 2)
+            .scale(currentZoomLevel)
+      );
 
     // Add border around bounding #tree-svg so the user can see where the borders are
     d3.select('#tree-svg').style('border', '3px dashed lightgray')
-    
     var i = 0,
         duration = 750, // in milliseconds
         root;
@@ -124,7 +142,7 @@ async function loadData() {
         root.children.forEach(collapse);
         
         update(root);
-        resizeCanvas(treemap(root), node_width, node_height);
+        //resizeCanvas(treemap(root), node_width, node_height);
     });
 
     /* 
@@ -143,7 +161,6 @@ async function loadData() {
         d._children.forEach(collapse);
         d.children = null;
       }
-      resizeCanvas(treemap(root), node_width, node_height); // could be unnecessary
     }
 
     /* 
@@ -164,7 +181,6 @@ async function loadData() {
       }
       if(children)
         children.forEach(expand);
-      resizeCanvas(treemap(root), node_width, node_height); // could be unnecessary
     }
 
     /*
@@ -507,7 +523,8 @@ async function loadData() {
             }
             update(d);
             setAllPlusMinusButton(); // update BOTH plus minus ('show-more' and 'show-all')
-            resizeCanvas(treeData, node_width, node_height);
+            //resizeCanvas(treeData, node_width, node_height);
+            //repositionTree(d);
           });
 
       // ****************** ".show-all" button section ***************************
@@ -567,7 +584,7 @@ async function loadData() {
       nodeUpdate.transition()
         .duration(duration)
         .attr("transform", function(d) { 
-            return "translate(" + (d.x-treeBbox.left) + "," + d.y + ")";
+            return "translate(" + (d.x) + "," + d.y + ")";
          });
     
       // Update the node attributes and style
@@ -583,7 +600,7 @@ async function loadData() {
       var nodeExit = node.exit().transition()
           .duration(duration)
           .attr("transform", function(d) {
-              return "translate(" + (source.x-treeBbox.left) + "," + source.y + ")";
+              return "translate(" + (source.x) + "," + source.y + ")";
           })
           .remove();
     
@@ -605,7 +622,7 @@ async function loadData() {
       var linkEnter = link.enter().insert('path', "g")
           .attr("class", "link")
           .attr('d', function(d){
-            var o = {x: source.x0+treeBbox.left, y: source.y0}
+            var o = {x: source.x0, y: source.y0}
             return diagonal(o, o)
           });
 
@@ -654,7 +671,7 @@ async function loadData() {
     
       // Store the old positions for transition.
       nodes.forEach(function(d){
-        d.x0 = d.x - treeBbox.left;
+        d.x0 = d.x;
         d.y0 = d.y;
       });
     
@@ -662,10 +679,10 @@ async function loadData() {
       // Creates a curved (diagonal) path from parent to the child nodes
       function diagonal(s, d) {
     
-        const path = `M ${s.x - treeBbox.left} ${s.y}
-                      C ${(s.x + d.x) / 2 - treeBbox.left} ${s.y},
-                        ${(s.x + d.x) / 2 - treeBbox.left} ${d.y},
-                        ${d.x - treeBbox.left} ${d.y}`
+        const path = `M ${s.x} ${s.y}
+                      C ${(s.x + d.x) / 2} ${s.y},
+                        ${(s.x + d.x) / 2} ${d.y},
+                        ${d.x} ${d.y}`
         return path
       }
 
