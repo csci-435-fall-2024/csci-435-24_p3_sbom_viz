@@ -2,53 +2,6 @@ import "https://d3js.org/d3.v7.min.js";
 
 import { getLicenseData } from './license_data.js';
 
-  function tabulate(data, columns) {
-    var table = d3.select('#license-table').append('table')
-          .style("border", "2px black solid")
-          .style("border-collapse", "collapse");
-    var thead = table.append('thead');
-    var	tbody = table.append('tbody');
-
-    // append the header row
-    thead.append('tr')
-      .selectAll('th')
-      .data(columns).enter()
-      .append('th')
-        .text(function (d) { return d; })
-          .style("border", "1px black solid")
-          .style("padding", "5px")
-          .style("background-color", "lightgray")
-          .style("font-weight", "bold")
-          .style("text-transform", "uppercase");
-
-    // create a row for each object in the data
-    var rows = tbody.selectAll('tr')
-      .data(data)
-      .enter()
-      .append('tr')
-        
-    // create a cell in each row for each column
-    var cells = rows.selectAll('td')
-      .data(function (row) {
-        return columns.map(function (column) {
-          return {column: column, value: row[column]};
-        });
-      })
-      .enter()
-      .append('td')
-        .text(function (d) { return d.value; })
-          .style("border", "1px black solid")
-          .style("padding", "5px")
-          .on("mouseover", function(){
-              d3.select(this).style("background-color", "powderblue");
-          })
-          .on("mouseout", function(){
-              d3.select(this).style("background-color", "white");
-          });
-
-  return table;
-}
-
 
 async function setUpTable(){
 
@@ -107,26 +60,12 @@ async function setUpTable(){
       .enter()
       .append('td')
       .text(d => d)
-      .style("border", "1px black solid")
-      .style("padding", "5px")
       .on("mouseover", function() {
         d3.select(this).style("background-color", "powderblue");
       })
       .on("mouseout", function() {
         d3.select(this).style("background-color", "white");
       });
-
-    // Style header row
-    d3.selectAll('thead th')
-      .style("border", "1px black solid")
-      .style("padding", "5px")
-      .style("background-color", "lightgray")
-      .style("font-weight", "bold");
-
-    // Style the table
-    d3.select('#licenseTable')
-      .style("border", "2px black solid")
-      .style("border-collapse", "collapse");
   }
 
   // Initial table load

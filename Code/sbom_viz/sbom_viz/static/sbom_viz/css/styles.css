@@ -245,13 +245,61 @@ rect#node-container.node { /* Large rect node container */
   font-weight: bold;
 }
 
+.licenses {
+
+  select {
+    padding: 10px;
+    margin-bottom:5px;
+    background-color: #f9f9f9;
+    border: 1px solid black;
+    position: sticky;
+    top: 0; /* Always fixed at the top while scrolling */
+    z-index: 10;
+  }
+
+  #table-container{
+    max-height: 400px; /* Set max scroll height */
+    overflow-y: auto; /* Enable scrolling */
+    border: 1px solid black; 
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  /* Header sticky on scrolling */
+  thead th {
+    position: sticky;
+    top: 0;
+    background-color: lightgray;
+    font-weight: bold;
+    padding: 5px;
+    text-align: left;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+  }
+
+  tbody tr {
+    border: 1px solid black;
+    height: 30px;
+  }
+
+  tbody td {
+    padding: 5px;
+    text-align: left;
+    border-right: 1px solid black;
+  }
+  
+}
 /* vulnerabilities page */
 #top-view {
   margin-top: 20px;
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: space-evenly;
+  padding-bottom: 50px;
 }
 
 #severity-container{

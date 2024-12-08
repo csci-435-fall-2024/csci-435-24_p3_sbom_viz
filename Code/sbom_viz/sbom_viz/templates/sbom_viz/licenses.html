@@ -31,20 +31,24 @@
                 <div id="license-pie-chart-container"></div>
             </div>
 
-            <div id="license-restrictiveness-container">
-                <h2>License Information</h1>
-                    <select id="restrictivenessFilter">
-                        <option value="all">All</option>
-                        <option value="forbidden">Forbidden</option>
-                        <option value="reciprocal">Reciprocal</option>
-                        <option value="notice">Notice</option>
-                        <option value="permissive">Permissive</option>                       
-                        <option value="unencumbered">Unencumbered</option>
-                        <option valie="unknown">Unknown</option>
-                    </select>
-                    <table id="licenseTable"></table>
-            </div>
             
+            <div id="license-restrictiveness-container" class="licenses">
+                <h2>License Information</h1>
+                <select id="restrictivenessFilter">
+                    <option value="all">All</option>
+                    <option value="forbidden">Forbidden</option>
+                    <option value="reciprocal">Reciprocal</option>
+                    <option value="notice">Notice</option>
+                    <option value="permissive">Permissive</option>                       
+                    <option value="unencumbered">Unencumbered</option>
+                    <option valie="unknown">Unknown</option>
+                </select>
+                
+                <div id="table-container">
+                    <table id="licenseTable"></table>
+                </div>
+            </div>
+
         </div>
     </div>
 </body>
