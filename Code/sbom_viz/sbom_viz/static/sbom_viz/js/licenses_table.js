@@ -21,7 +21,9 @@ async function setUpTable(){
   // update the number of distinct licenses
   document.getElementById("number-distinct-licenses").textContent = num_licenses;
 
-  const columns = ["License", "Restrictiveness", "Count", "Composition"];
+  // asterisk to let the user know that the link may 
+  // not be valid, due to incorrect parsing of the license text
+  const columns = ["License*", "Restrictiveness", "Count", "Composition"];
 
   function updateTable(filter = 'all') {
     const table = d3.select("#licenseTable");
@@ -53,13 +55,13 @@ async function setUpTable(){
     // Append cells to each row
     rows.selectAll('td')
       .data(d => [
-        d.license, 
+        `<a href="${getSpdxURL(d.license)}" target="_blank">${d.license}</a>`, // Clickable SPDX link
         d.restrictiveness || 'Unknown', 
         d.count,
         d.composition]) // Map data to table cells
       .enter()
       .append('td')
-      .text(d => d)
+      .html(d => d)
       .on("mouseover", function() {
         d3.select(this).style("background-color", "powderblue");
       })
@@ -76,6 +78,10 @@ async function setUpTable(){
     const filter = d3.select(this).property('value').toLowerCase();
     updateTable(filter);
   });
+}
+
+function getSpdxURL(license) {
+  return `https://spdx.org/licenses/${encodeURIComponent(license)}.html`;
 }
 
 setUpTable();
