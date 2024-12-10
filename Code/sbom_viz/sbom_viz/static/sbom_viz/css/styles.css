@@ -224,7 +224,6 @@ rect#node-container.node { /* Large rect node container */
   color: #151515;
   margin: auto;
   text-align: center;
-  padding-bottom: 30px;
 }
 
 .centered {
@@ -240,59 +239,115 @@ rect#node-container.node { /* Large rect node container */
   font-weight: bold;
 }
 
-/* vulnerabilities page */
+.licenses, .vulnerabilities {
+
+  /* Pie chart container */
+  #distribution-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    h2 {
+      /* Shorten distance between "Distribution" and pie chart*/
+      margin-bottom: -20px;
+    }
+
+    }
+  
+
+  label {
+    display: block;
+    padding-bottom: 2px;
+  }
+
+  select {
+    padding: 10px;
+    margin-bottom:5px;
+    background-color: #f9f9f9;
+    border: 1px solid black;
+    position: sticky;
+    top: 0; /* Always fixed at the top while scrolling */
+    z-index: 10;
+  }
+
+  #table-container{
+    max-height: 400px; /* Set max scroll height */
+    overflow-y: auto; /* Enable scrolling */
+    border: 1px solid black; 
+  }
+
+  table {
+    width: 700px;
+    border-collapse: collapse;
+
+    /* For the SPDX license links or CVEID links in the table */
+    a {
+      color: blue;
+      text-decoration: underline;
+    }
+    a:hover {
+      color: darkblue;
+      text-decoration: none;
+    }
+  }
+
+  /* Header sticky on scrolling */
+  thead th {
+    position: sticky;
+    top: 0;
+    background-color: lightgray;
+    font-weight: bold;
+    padding: 5px;
+    text-align: left;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+  }
+
+  tbody tr {
+    border: 1px solid black;
+    height: 30px;
+  }
+
+  tbody td {
+    padding: 5px;
+    text-align: left;
+    border-right: 1px solid black;
+  }
+  
+}
+
+.vulnerabilities {
+
+  /* CVSS Severity Counts: */
+  #severity-container{
+  display: flex;
+  flex-direction: column;
+
+    /* each line of the severity summary:
+    add padding to the left so they are indented */
+    #severity-lines {
+      padding-left: 20px;
+    }
+  }
+
+}
+
+/* main content for the licenses and vulnerabilities pages */
 .analysis-content {
   margin-top: 20px;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: space-evenly;
+  border: dodgerblue 5px solid;
+  border-radius: 15px;
+  gap: 30px;
+  margin-bottom:50px;
 }
 
-#severity-container{
-  display: flex;
-  flex-direction: column;
-}
 
-/* add padding to the left so they are indented */
-#severity-lines {
-  padding-left: 20px;
-}
 
-#distribution-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-}
 
-/* Shorten distance between "Distribution" and pie chart*/
-.distribution h2 {
-  margin-bottom: -20px;
-}
-
-/* Increase distance between h2 and content */
-.severity h2, .vulner-table-container h2{
-  padding-bottom: 20px; /* center the list of severities at the same line as the pie chart*/
-}
-
-.vulner-table-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 100px;
-
-  /* For the cve_id links in the table */
-  table a {
-      color: blue;
-      text-decoration: underline;
-  }
-  table a:hover {
-      color: darkblue;
-      text-decoration: none;
-  }
-
-}
 
 .hyperlink {
   color: #0000EE;

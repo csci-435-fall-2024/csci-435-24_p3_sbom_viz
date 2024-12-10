@@ -2,26 +2,7 @@ import "https://d3js.org/d3.v7.min.js";
 import { getVulnerabilityDistribution } from "./vulnerability_data.js";
 
 
-// Temporary vulnerability distribution data (replace with endpoint later)
-// ** Just added a few more to see how pie chart looks when crowded
-/*
-let data = [
-    {"name":"Critical", "count":10},
-    {"name":"Critical-High", "count":15},
-    {"name":"High", "count":20},
-    {"name":"High-Medium", "count":25},
-    {"name":"Medium", "count":10},
-    {"name":"Medium-Low", "count":15},
-    {"name":"Low", "count":30},
-    {"name":"Low-None", "count":35},
-    {"name":"None", "count":2},
-]
-    */
-
-
 async function setUpPieChart(){
-
-
 
     // Inspired by https://d3-graph-gallery.com/graph/pie_annotation.html
     const width = 500;
@@ -117,6 +98,7 @@ async function setUpSeveritySummary(){
     });
 } // setUpSeveritySummary()
 
-let data = await getVulnerabilityDistribution();
+let data = await getVulnerabilityDistribution()
+data = data.slice(0,10);
 setUpPieChart();
 setUpSeveritySummary();

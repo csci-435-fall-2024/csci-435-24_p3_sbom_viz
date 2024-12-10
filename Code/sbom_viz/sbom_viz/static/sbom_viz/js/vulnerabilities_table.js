@@ -24,10 +24,8 @@ var data = [
    *    https://codepen.io/blackjacques/pen/RYVpKZ
    */
 
-async function tabulate(data, columns) {
-	var table = d3.select('#vulner-table').append('table')
-        .style("border", "2px black solid")
-        .style("border-collapse", "collapse");
+async function tabulate(data, columns) {        
+  var table = d3.select("#vulnTable")
 	var thead = table.append('thead');
 	var	tbody = table.append('tbody');
 
@@ -36,12 +34,7 @@ async function tabulate(data, columns) {
 	  .selectAll('th')
 	  .data(columns).enter()
 	  .append('th')
-	    .text(function (d) { return d; })
-        .style("border", "1px black solid")
-        .style("padding", "5px")
-        .style("background-color", "lightgray")
-        .style("font-weight", "bold")
-        .style("text-transform", "uppercase");
+	    .text(function (d) { return d; });
 
 	// create a row for each object in the data
 	var rows = tbody.selectAll('tr')
@@ -61,13 +54,11 @@ async function tabulate(data, columns) {
       // If this is the 'cve_id' column, then make 
       // the cve_id a link rather than text
 	    .html(function (d){
-        if (d.column == "cve_id"){
+        if (d.column == "CVE ID"){
           return `<a href="https://nvd.nist.gov/vuln/detail/${d.value}" target="_blank" >${d.value}</a>`;
         }
         return d.value; 
       })
-        .style("border", "1px black solid")
-        .style("padding", "5px")
         .on("mouseover", function(){
             d3.select(this).style("background-color", "powderblue");
         })
@@ -80,7 +71,7 @@ async function tabulate(data, columns) {
 
 
 getVulnerabilityTableData().then(s => {
-  tabulate(s, ['component_name', 'cve_id', 'score', 'severity', 'description']); // table with all columns
+  tabulate(s, ['Component', 'CVE ID', 'Score', 'Severity', 'Title']); // table with all columns
   });
 
 
