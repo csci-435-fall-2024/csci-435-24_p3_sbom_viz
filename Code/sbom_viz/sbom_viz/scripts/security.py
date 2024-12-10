@@ -98,7 +98,7 @@ def write_sbom(sbom_data, file_path):
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(sbom_data)
 
-    logging.debug(f"JSON file '{file_path}' has been created successfully.")
+    logging.debug(f"SBOM file '{file_path}' has been created successfully.")
 
 def remove_sbom(filename):
     if os.path.exists(filename):
@@ -109,9 +109,12 @@ def remove_sbom(filename):
 
 def get_security_output(sbom_parser): 
     #might have to change path for writing sbom
-    write_sbom(sbom_parser.get_sbom_data(), 'sbom.json')
+    sbom_data=sbom_parser.get_sbom_data()
+    file_ext=sbom_data[0]
+    filename="sbom."+file_ext
+    write_sbom(sbom_data[1], filename)
     try:   
-        scan_output=run_security_scan("sbom.json")
+        scan_output=run_security_scan(filename)
         # need to consider if trivy fails
         scan_type=scan_output[0]
         if scan_type=="trivy":
@@ -121,9 +124,9 @@ def get_security_output(sbom_parser):
             parser=BomberOutputParser(sbom_parser, scan_output[1])
             final_security_output=parser.reformat_bomber_output()
     except Exception as e:
-        remove_sbom("sbom.json")
+        remove_sbom(filename)
         raise e
-    remove_sbom("sbom.json") # should I remove? #are we storing already loaded sboms
+    remove_sbom(filename) # should I remove? #are we storing already loaded sboms
     return final_security_output
 
 logging.basicConfig(
