@@ -1,14 +1,11 @@
 import logging
 
+logger = logging.getLogger('security')
+
 class TrivyOutputParser():
     def __init__(self, sbom_parser, scan_output:dict):
         self.sbom_parser=sbom_parser
         self.scan_output=scan_output
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(asctime)s\t%(levelname)s\t%(message)s",
-            datefmt="%Y-%m-%dT%H:%M:%S%z"
-        )
 
     def __update_severity_distribution(self, sec_info:dict, vuln_dict:dict):
         severity=vuln_dict["Severity"]
@@ -68,13 +65,13 @@ class TrivyOutputParser():
             for key in vuln_dict.keys():
                 if key in ["VulnerabilityID", "SeveritySource", "Status", "Title", "Description", "Severity", "CVSS", "PublishedDate", "LastModifiedDate"] and key not in vuln_info.keys():
                     keys_missing.append(key)
-                    logging.debug("[trivy parser] "+ key + " missing for "+vuln_info["VulnerabilityID"])
+                    logger.debug("[trivy parser] "+ key + " missing for "+vuln_info["VulnerabilityID"])
                 elif key == "CWE_IDs" and "CweIDs" not in vuln_info.keys():
                     keys_missing.append(key)
                 elif key ==  "Displayed_CVSS" and "CVSS" in keys_missing:
                     keys_missing.append("Displayed_CVSS")
-                elif key == "References":
-                    pass
+                #elif key == "References" and ("PrimaryURL" not in vuln_info.keys() and "References" not in vuln_info.keys()):
+                    #keys_missing.append("References")
 
             for key in vuln_dict.keys():
                 if key in keys_missing:
@@ -86,7 +83,19 @@ class TrivyOutputParser():
                 elif key ==  "Displayed_CVSS":
                     vuln_dict[key]=vuln_info["CVSS"][vuln_dict["SeveritySource"]]["V3Score"]
                 elif key == "References":
-                    pass
+                    if "PrimaryURL" in vuln_info.keys():
+                        vuln_dict["References"].append(vuln_info["PrimaryURL"])
+                    
+                    # if the vulnerability has a CVE id, add NVD as a reference
+                    if "CVE" in vuln_info["VulnerabilityID"]:
+                        nvd_ref="https://nvd.nist.gov/vuln/detail/"+vuln_dict["VulnerabilityID"] 
+                        if nvd_ref in vuln_info["References"] and nvd_ref not in vuln_dict["References"]:
+                            vuln_dict["References"].append(nvd_ref)
+
+                    # if ghsa is the severity source, add ghsa as a reference
+                    if vuln_dict["SeveritySource"]=="ghsa" and ("GHSA" not in vuln_dict["VulnerabilityID"]):
+                        ghsa_query="https://github.com/advisories?query="+vuln_dict["VulnerabilityID"]
+                        vuln_dict["References"].append(ghsa_query)
         except KeyError as e:
             print(vuln_dict)
             raise e
@@ -107,9 +116,9 @@ class TrivyOutputParser():
         for pkg_type in self.scan_output["Results"]:
             # no vulnerabilites found for packages of package type
             if "Vulnerabilities" not in pkg_type.keys():
-                logging.info("[trivy parser] No vulnerabilites found for packages with package type "+pkg_type["Type"])
+                logger.info("[trivy parser] No vulnerabilites found for packages with package type "+pkg_type["Type"])
                 continue
-            for count, vuln in enumerate(pkg_type["Vulnerabilities"]):
+            for vuln in pkg_type["Vulnerabilities"]:
                 purl=vuln["PkgIdentifier"]["PURL"]
                 sbom_id=self.__find_corresponding_sbom_component(purl)
                 vuln_dict=self.__make_vuln_dict(vuln)
@@ -145,5 +154,9 @@ class TrivyOutputParser():
 
         # sort by CVSS score (highest to lowest)
         sec_info["Summary"]["Top_10"] = dict(sorted(sec_info["Summary"]["Top_10"].items(), key=lambda item: item[1]["Displayed_CVSS"], reverse=True))
+
+        if not sec_info["Effected_Components"]:
+            logger.info("[trivy parser] No vulnerabilites found overall.")
+            
         return sec_info
     

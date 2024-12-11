@@ -120,7 +120,6 @@ def get_security_output(sbom_parser):
     try:   
         scan_output=run_security_scan(filename)
         if (scan_output==False) or (scan_output==None):
-            print(scan_output)
             remove_sbom(filename)
             return scan_output
         scan_type=scan_output[0]
