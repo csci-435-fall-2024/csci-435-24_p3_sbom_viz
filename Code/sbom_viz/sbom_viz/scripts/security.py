@@ -17,16 +17,17 @@ def run_bomber_scan(path_to_sbom: str):
     try:
         # convert output from subprocess into a dictionary
         bomber_output=json.loads(result.stdout.strip())
-        logging.info("[bomber] Bomber scan was successful")
+        logger.info("[bomber] Bomber scan was successful")
         return bomber_output
     except json.decoder.JSONDecodeError as e:
         if "No packages were detected. Nothing has been scanned." in result.stdout:
-            logging.info("[bomber] No packages were detected. Nothing has been scanned.")
-            return False
+            logger.info("[bomber] No packages were detected. Nothing has been scanned.")
+            return None
         # shouldn't reach this case since file not found should have been handled by trivy scan (it's here just in case)
         elif "The system cannot find the file specified" in result.stdout:
-            logging.error("[bomber] "+result.stdout.strip())
-            logging.info("The program has exited due to file not found error")
+            logger.error("[bomber] "+result.stdout.strip())
+            logger.info("The program has exited due to file not found error")
+            remove_sbom(path_to_sbom)
             exit()
     
 def run_trivy_scan(path_to_sbom:str):
@@ -38,38 +39,37 @@ def run_trivy_scan(path_to_sbom:str):
 
         # if trivy found no packages to scan
         if "Results" not in trivy_output.keys():
-            #print(result.stderr)
-            logging.info("[trivy] Found no packages to scan")
-            return False
-        logging.info("[trivy] Trivy scan was successful")
+            logger.info("[trivy] Found no packages to scan")
+            return None
+        logger.info("[trivy] Trivy scan was successful")
         return trivy_output
     except json.decoder.JSONDecodeError as e:
         # if there is no stdout, it's likely that trivy wasn't able to scan the sbom due to errors like "file not found" or unsupported type
         if result.stdout=='':
-            logging.info("[trivy] Trivy scan failed")
+            logger.info("[trivy] Trivy scan failed")
             for log_message in result.stderr.split('\n'):
                 if log_message=='':
                     continue
                 message_parts=log_message.split('\t')
                 if message_parts[2]=="[vuln] Vulnerability scanning is enabled":
-                    logging.debug("[trivy] Vulnerability scanning is enabled")
+                    logger.debug("[trivy] Vulnerability scanning is enabled")
                 if message_parts[2]=="Detected SBOM format":
-                    logging.debug("[trivy] Detected SBOM format; "+ message_parts[3])
+                    logger.debug("[trivy] Detected SBOM format; "+ message_parts[3])
                 if message_parts[1]=="FATAL":
                     # if the system cannot find the file exit the program; there is no point to try with bomber since it'll likely encounter the same issue
                     if "failed to open sbom file error" in message_parts[3]:
-                        logging.error("[trivy] "+message_parts[3])
-                        logging.info("The program has exited due to file not found error")
-                        remove_sbom("sbom.json")
+                        logger.error("[trivy] "+message_parts[3])
+                        logger.info("The program has exited due to file not found error")
+                        remove_sbom(path_to_sbom)
                         exit()
                     else:
-                        logging.info("[trivy] "+message_parts[3])
+                        logger.info("[trivy] "+message_parts[3])
             return False
         else:
             print(result.stderr)
-            logging.error("[trivy] An unexpected error occured during the Trivy scan")
-            remove_sbom("sbom.json")
-            raise e
+            logger.error("[trivy] An unexpected error occured during the Trivy scan")
+            return False
+            #raise e
     
 def run_security_scan(path_to_sbom: str):
     # To Do: sanitize input, file type check for scanning tools
@@ -78,34 +78,38 @@ def run_security_scan(path_to_sbom: str):
     result=run_trivy_scan(path_to_sbom)
 
     # if the trivy scan doesn't work, use bomber
-    if result==False:
-        logging.info("Trivy failed to scan. Now attempting Bomber scan.")
+    if result==False or result==None:
+        if result==False:
+            logger.info("Trivy failed to scan. Now attempting Bomber scan.")
+        else:
+            logger.info("Trivy found nothing to scan. Now attempting Bomber scan.")
         scan_type="bomber"
         result=run_bomber_scan(path_to_sbom)
     
-    # if neither work, exit and return warning message
+    if result==None:
+        return None
+    
+    # if neither security tool worked, log warning message
     if result==False:
-        logging.warning("Unable to scan for security vulnerabilites or the security tool(s) determined there was nothing scan")
-        remove_sbom("sbom.json")
-        exit()
-
-    logging.info("Finished security scan")
+        logger.warning("Unable to scan for security vulnerabilites")
+        return False
+    
+    logger.info("Finished security scan")
     return (scan_type, result)
 
-# currently only for json
 def write_sbom(sbom_data, file_path):
     # Write data to JSON file
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(sbom_data)
 
-    logging.debug(f"SBOM file '{file_path}' has been created successfully.")
+    logger.debug(f"SBOM file '{file_path}' has been created successfully.")
 
 def remove_sbom(filename):
     if os.path.exists(filename):
         os.remove(filename)
-        logging.debug(f"File '{filename}' has been deleted successfully.")
+        logger.debug(f"File '{filename}' has been deleted successfully.")
     else:
-        logging.debug(f"File '{filename}' does not exist.")
+        logger.debug(f"File '{filename}' does not exist.")
 
 def get_security_output(sbom_parser): 
     #might have to change path for writing sbom
@@ -115,7 +119,10 @@ def get_security_output(sbom_parser):
     write_sbom(sbom_data[1], filename)
     try:   
         scan_output=run_security_scan(filename)
-        # need to consider if trivy fails
+        if (scan_output==False) or (scan_output==None):
+            print(scan_output)
+            remove_sbom(filename)
+            return scan_output
         scan_type=scan_output[0]
         if scan_type=="trivy":
             parser=TrivyOutputParser(sbom_parser, scan_output[1])
@@ -129,11 +136,7 @@ def get_security_output(sbom_parser):
     remove_sbom(filename) # should I remove? #are we storing already loaded sboms
     return final_security_output
 
-logging.basicConfig(
-    level=logging.DEBUG,
-    format="%(asctime)s\t%(levelname)s\t%(message)s",
-    datefmt="%Y-%m-%dT%H:%M:%S%z"
-)
+logger = logging.getLogger('security')
 
 #run_trivy_scan("../../Artifacts/sbom_examples/cyclonedx/1.2/laravel.bom.1.2.xml") #xml on trivy
 #print(run_trivy_scan("../../Artifacts/sbom_examples/cyclonedx/1.3/cargo-valid-bom-1.3.json")) # scanning occured but found nothing
@@ -163,7 +166,6 @@ logging.basicConfig(
 #scan=run_security_scan("../../Artifacts/sbom_examples/spdx/2.2/examle1.spdx") #file not found
 #scan=run_security_scan("../../Artifacts/sbom_examples/spdx/2.3/sampleSPDX.json")
 #scan=run__scan("../../Artifacts/sbom_examples/cyclonedx/1.3/cargo-valid-bom-1.3.json")
-#print(scan[0])
-#print(scan[1])
+#scan=run_security_scan("../../Artifacts/sbom_examples/spdx/2.2/example7-bin.spdx.json")
+#print(scan)
 
-#print(run_bomber_scan("../../Artifacts/Examples/Working SBOMs/sbom2.3.spdx.json"))

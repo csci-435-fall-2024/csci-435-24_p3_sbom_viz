@@ -253,7 +253,14 @@ def get_sec_info(request):
     global sbom_parser
     if uploaded:
         sec_output=security.get_security_output(sbom_parser)
+        
         if request.method == "GET":
+            if sec_output==False:
+                return HttpResponse("Unable to scan for vulnerabilites. See security.log for more information.", content_type="text/plain")
+        
+            if sec_output==None:
+                return HttpResponse("Found no packages to scan.", content_type="text/plain")
+            
             return JsonResponse(data=sec_output, json_dumps_params={"indent": 4})
             
 def get_license(request):

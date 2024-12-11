@@ -107,7 +107,7 @@ class TrivyOutputParser():
         for pkg_type in self.scan_output["Results"]:
             # no vulnerabilites found for packages of package type
             if "Vulnerabilities" not in pkg_type.keys():
-                logging.debug("[trivy parser] No vulnerabilites found for packages with package type "+pkg_type["Type"])
+                logging.info("[trivy parser] No vulnerabilites found for packages with package type "+pkg_type["Type"])
                 continue
             for count, vuln in enumerate(pkg_type["Vulnerabilities"]):
                 purl=vuln["PkgIdentifier"]["PURL"]
