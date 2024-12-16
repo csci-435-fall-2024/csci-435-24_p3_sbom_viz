@@ -84,19 +84,6 @@ form {
     border-radius: 3px;
 }
 
-/* 
-Didn't find a need for styling the filetype selecting
-area, but just in case we want to change it later
-.file-type {
-
-}
-*/
-
-/* Make the "Select SBOM Standard" text bolder */
-label[for="file-standard-selector"] {
-    font-weight: bolder;
-}
-
 #upload-button {
     background-color: rgb(79, 87, 87);
     color:whitesmoke;
@@ -104,7 +91,6 @@ label[for="file-standard-selector"] {
     border-radius: 6px;
     width: 325px;
     padding: 15px;
-
 }
 
 rect#node-container.node { /* Large rect node container */
@@ -136,7 +122,6 @@ rect#node-container.node { /* Large rect node container */
   border-radius: 2px;
   dominant-baseline: middle; /* Helps to center text in rect */
 }
-
 
 /* Sidebar stuff */
 .sidebar {
@@ -217,8 +202,14 @@ rect#node-container.node { /* Large rect node container */
 }
 
 #tree-svg-container {
-  position: relative;
-  top: 60px;
+  margin-top: 15px;
+  display: flex;
+  justify-content: center;
+
+  #tree-svg{
+    border: 3px dashed lightgray;
+    border-radius: 5px;
+  }
 }
 
 /* Represents the page content with empty space above it to lower the body information so it is not below the navigation bar. */
@@ -240,11 +231,29 @@ rect#node-container.node { /* Large rect node container */
   text-align: center;
 }
 
+.hidden {
+  opacity: 0;
+}
+
 .bold {
   font-weight: bold;
 }
 
-.licenses {
+.licenses, .vulnerabilities {
+
+  /* Pie chart container */
+  #distribution-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    h2 {
+      /* Shorten distance between "Distribution" and pie chart*/
+      margin-bottom: -20px;
+    }
+
+    }
+  
 
   label {
     display: block;
@@ -264,7 +273,6 @@ rect#node-container.node { /* Large rect node container */
   #table-container{
     max-height: 400px; /* Set max scroll height */
     overflow-y: auto; /* Enable scrolling */
-    overflow-x: auto;
     border: 1px solid black; 
   }
 
@@ -272,7 +280,7 @@ rect#node-container.node { /* Large rect node container */
     width: 700px;
     border-collapse: collapse;
 
-    /* For the SPDX license links in the table */
+    /* For the SPDX license links or CVEID links in the table */
     a {
       color: blue;
       text-decoration: underline;
@@ -307,50 +315,39 @@ rect#node-container.node { /* Large rect node container */
   }
   
 }
-/* main content for vuln and licenses page */
-#top-view {
-  margin: 0px 50px 50px 50px;
+
+.vulnerabilities {
+
+  /* CVSS Severity Counts: */
+  #severity-container{
+  display: flex;
+  flex-direction: column;
+
+    /* each line of the severity summary:
+    add padding to the left so they are indented */
+    #severity-lines {
+      padding-left: 20px;
+    }
+  }
+
+}
+
+/* main content for the licenses and vulnerabilities pages */
+.analysis-content {
+  margin-top: 20px;
   display: flex;
   flex-direction: row;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   justify-content: space-evenly;
   border: dodgerblue 5px solid;
   border-radius: 15px;
   gap: 30px;
+  margin-bottom:50px;
 }
 
-#distribution-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
 
-#severity-container{
-  display: flex;
-  flex-direction: column;
-}
 
-/* add padding to the left so they are indented */
-#severity-lines {
-  padding-left: 20px;
-}
 
-/* Shorten distance between "Distribution" and pie chart*/
-.distribution h2 {
-  margin-bottom: -20px;
-}
-
-/* Increase distance between h2 and content */
-.severity h2, .vulner-table-container h2{
-  padding-bottom: 20px; /* center the list of severities at the same line as the pie chart*/
-}
-
-.vulner-table-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 100px;
-}
 
 .hyperlink {
   color: #0000EE;
@@ -369,7 +366,52 @@ rect#node-container.node { /* Large rect node container */
 }
 
 .controls {
+
   margin-top: 75px;
+  
+  button { 
+    padding: 4px;
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+    opacity: 0.7;
+  }
+  button:hover {
+    background-color: #0b5ed7;
+  }
+
+  .search {
+
+    input {
+      margin-top: 5px;
+    }
+  
+    #autocomplete-suggestions {
+      position: absolute; 
+      background-color: #f8f9fa; 
+      border: 1px solid #dee2e6; 
+      max-height: 200px; 
+      overflow-y: auto;
+      z-index: 100; /* Assigns a higher priority to the suggestions, so they are placed above the tree container */
+      box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.1);
+    
+      /* Each row of the autocomplete suggestions */
+      .suggestion {
+        padding: 5px;
+        cursor: pointer;
+        font-size: 0.75rem;
+
+      }
+  
+      .suggestion:hover {
+        background-color: #f0f0f0;
+      }
+    }
+  }
 }
 
 .disabled-nav-link {

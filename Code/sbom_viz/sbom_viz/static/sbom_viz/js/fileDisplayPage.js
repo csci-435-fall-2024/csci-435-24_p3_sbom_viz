@@ -40,6 +40,12 @@ async function loadData() {
        *    and Vertical orientation
        */
 
+      /* 
+
+      ** UNUSED **
+      ** Previously used when initially developing the tree, **
+      ** before the tool could use real data                 **
+
       var treeData =
       {
         "name": "Top Level",
@@ -54,54 +60,210 @@ async function loadData() {
           { "name": "Level 2: B" }
         ]
       };
-    
+      */
+
     // Set the dimensions and margins of the diagram
-    var margin = {top: 50, right: 400, bottom: 30, left: 90},
-        width = 1000 - margin.left - margin.right,
-        height = 1000 - margin.top - margin.bottom;
-    
-    // append the svg object to the body of the page
-    // appends a 'group' element to 'svg'
-    // moves the 'group' element to the top left margin
+
+    const sidebarWidth = document.querySelector("#sidebar").getBoundingClientRect().width;
+    const headerHeight = document.querySelector("div.header").getBoundingClientRect().height;
+    const controlsHeight = document.querySelector("div.controls").getBoundingClientRect().height;
+
+    /*
+     * The #tree-svg-container is all the space to the left 
+     * of the sidebar, under the header.
+     * To center the #tree-svg inside of it, set its width
+     * dynamically based on the window size.
+     */
+    document.getElementById("tree-svg-container")
+      .setAttribute("style", `width:${
+            window.innerWidth - sidebarWidth - 10 // <- accounting for sidebar shadow
+      }px`)
+
+    // these sizes refer to the actual "#tree-svg"
+    var margin = {top: 50, right: 50, bottom: 50, left: 50},
+        width = window.innerWidth - margin.left - margin.right - sidebarWidth,
+        height = window.innerHeight - margin.top - margin.bottom - headerHeight - controlsHeight;
+
+    /*
+     * append the svg object to the body of the page
+     * appends a 'group' element to 'svg'
+     * moves the 'group' element to the top left margin
+     * ** this [svg] var actually refers to the appended 'g'
+     */
     var svg = d3.select("#tree-svg-container").append("svg")
-    .attr("id", "tree-svg")
-    .attr("width", width + margin.right + margin.left)
-        .attr("height", height + margin.top + margin.bottom)
+      .attr("id", "tree-svg")
+      .attr("width", width)
+      .attr("height", height)
         .append("g")
-        .attr("transform", "translate("
+          .attr("transform", "translate("
               + margin.left + "," + margin.top + ")");
     
+    // Set up zoom behavior
+    var currentTransform = d3.zoomIdentity;
+    const zoom = d3.zoom()
+      .scaleExtent([0.1, 3]) // Minimum and maximum zoom scale
+      .on("zoom", (event) => {
+        currentTransform = event.transform;
+        svg.attr("transform", currentTransform); // Apply zoom and pan to the g element
+      });
+
+
+    // Attach zoom to the SVG
+    d3.select('#tree-svg').call(zoom)
+      .call(zoom.transform,
+        d3.zoomIdentity.translate(
+          width / 2 ,
+          height / 4) // slightly higher vertically
+            .scale(currentTransform.k) // scale to current zoom level
+      );
+
     var i = 0,
         duration = 750, // in milliseconds
+        nodeList,       // flattened list of all nodes, used for searching
+        nodeNames,      // list of node names, used for searching
         root;
-
+    
+    /*
+     * A 'node' is a single software component found in the SBOM,
+     * represented by a rectangle with the following dimensions:
+     */
     let node_width = 200;
     let node_height = 100;
     
-    // declares a tree layout and assigns the size
-    var treemap = d3.tree().nodeSize([node_width,node_height])//size([height, width]);
+    // Declares a tree layout and assign the size
+    var treemap = d3.tree().nodeSize([node_width,node_height]);
     
-    // Assigns parent, children, height, depth
-    // Currently loads JSON data from this link,
-    // The commented out line below would allow it to use the
-    // Raw JSON defined in this file
+    /*
+     * Assigns parent, children, height, depth
+     * Currently loads JSON data from this link,
+     * The commented out line below would allow it to use the
+     * Raw JSON defined above (treeData)
+     */
     d3.json("http://127.0.0.1:8000/tree").then(async function(data){
         // Wait for relationship and id data to load first
         await loadData();
         
         root = d3.hierarchy(data, function(d){return d.children;});
-        //root = d3.hierarchy(treeData, function(d) { return d.children; });
+        //root = d3.hierarchy(treeData, function(d) { return d.children; }); // <- USE DUMMY DATA INSTEAD
         root.x0 = height / 2;
         root.y0 = 0;
 
-        // Collapse after the second level
+        // Recursively collapse after the second level
         root.children.forEach(collapse);
         
         update(root);
-        resizeCanvas(treemap(root), node_width, node_height);
+
+        // Initialize the list of node names for autocomplete
+        nodeList = flattenTree(root); 
+        nodeNames = nodeList.map(node => node.data.name); 
     });
 
-    // Collapse the node and all its children
+    // Attach the "Focus Root" button handler
+    d3.select("#focus-root-button").on("click", () => {
+      focusNode(root);
+    });
+
+    /* ***** START OF SEARCHING CODE ***** */
+
+    /*
+     * Flatten the tree to get a list of all nodes
+     * Ran once, after tree data is loaded from /tree/
+     */
+    function flattenTree(node, nodeList = []) {
+      nodeList.push(node);
+      if (node.children || node._children) {
+        (node.children || node._children).forEach(child => flattenTree(child, nodeList));
+      }
+      return nodeList;
+    }
+
+    /* 
+     * Handle input for autocomplete
+     * When the user types something, gather all node names
+     * that match this search and append a div for each. When
+     * a search suggestion is clicked:
+     *  1) Expand the tree to that node
+     *  2) Center that node in the tree box
+     *  3) Add the corresponding card to the sidebar
+     * Then clear the search box
+     */
+    const searchInput = d3.select("#node-search");
+    const suggestionBox = d3.select("#autocomplete-suggestions");
+
+    searchInput.on("input", function () {
+      const query = this.value.toLowerCase();
+      suggestionBox.html(""); // clear previous suggestions
+
+      if (query) {
+        const matches = nodeNames.filter(name => name.toLowerCase().includes(query));
+        matches.forEach(name => {
+          suggestionBox.append("div")
+            .attr("class", "suggestion")
+            .text(name)
+            .on("click", function () {
+              const selectedNode = nodeList.find(node => node.data.name === name);
+              if (selectedNode) {
+                expandToNode(selectedNode);
+                focusNode(selectedNode);
+                addCard(selectedNode); // add clicked search result to the sidebar
+              }
+              suggestionBox.html(""); // clear suggestions
+              searchInput.property("value", ""); // clear search input
+            });
+        });
+      }
+    });
+
+    /*
+     * Function to expand the tree to a specific node
+     * Expand upwards while there is a parent
+     */
+    function expandToNode(node) {
+      let current = node;
+      while (current.parent) {
+        current = current.parent;
+        if (current._children) {
+          current.children = current._children; // expand hidden children
+          current._children = null;
+        }
+      }
+      update(current);
+    }
+
+    /*
+     * Function to focus a specific node by translating
+     * so that the node is in the center of the screen.
+     * Called when clicking the "Focus Root" button (with node = root)
+     * or when selecting a node in the search box.
+     */
+    function focusNode(node) {
+      const containerWidth = d3.select('#tree-svg').node().clientWidth;
+      const containerHeight = d3.select('#tree-svg').node().clientHeight;
+
+      // Calculate the container's center
+      const centerX = containerWidth / 2;
+      const centerY = containerHeight / 4; // put the node slightly towards the top rather than directly in the middle
+
+      const translateX = centerX - node.x * currentTransform.k; 
+      const translateY = centerY - node.y * currentTransform.k; 
+
+      // Update the view to center the node
+      d3.select('#tree-svg')
+        .transition()
+        .duration(duration)
+        .call(
+          zoom.transform,
+          d3.zoomIdentity.translate(translateX, translateY).scale(currentTransform.k) // k = zoom level
+        );
+    }
+    /* ***** END OF SEARCHING CODE ***** */
+
+    /* 
+     * -- Helper function --
+     * Recursively collapse the levels under the node [d].
+     * Used when initially building the tree (just above),
+     * and in the collapseAllNodes() function
+     */
     function collapse(d) {
       if (d.children) {
           d._children = d.children
@@ -112,12 +274,17 @@ async function loadData() {
         d._children.forEach(collapse);
         d.children = null;
       }
-      resizeCanvas(treemap(root), node_width, node_height); // could be unnecessary
     }
 
-    // Expand this node and its children
-    // d._children is hidden children,
-    // d.children is visible children
+    /* 
+     * -- Helper function --
+     * Recursively expand the levels under the node [d]
+     * Called in the collapseAllNodes() function.
+     * 
+     * A note on D3 - 
+     *    d._children is the set of hidden children of [d],
+     *    d.children is the set of visible children of [d]
+     */
     function expand(d){
       var children = (d.children) ? d.children : d._children;
       if (d._children) {        
@@ -126,12 +293,16 @@ async function loadData() {
       }
       if(children)
         children.forEach(expand);
-      resizeCanvas(treemap(root), node_width, node_height); // could be unnecessary
     }
 
     /*
-     * Whether or not this node has visible children,
+     * Called when the circular button in the bottom left of a node
+     * is pressed, if the node has ANY collapsed children,              <- Start = node that was clicked
+     * or when the 'Collapse All' button in the top left is selected.   <- No start passed in, so root is default
+     * 
+     * Whether or not [start] has visible children,
      * go through its children and try to collapse them.
+     * Correct any '+'/'-' that may need to be updated after this change.
      */
     function collapseAllNodes(start = root){
       if (start.children) 
@@ -143,6 +314,15 @@ async function loadData() {
       setAllPlusMinusButton(); // these nodes are now collapsed, so set their buttons to '+'
     }
 
+    /*
+     * Called when the circular button in the bottom left of a node
+     * is pressed, if there is AT LEAST ONE collapsed child of [start],  <- Start = node that was clicked
+     * or when the 'Expand All' button in the top left is selected.      <- No start passed in, so root is default
+     * 
+     * Whether or not [start] has visible children,
+     * go through its children and try to collapse them.
+     * Correct any '+'/'-' that may need to be updated after this change.
+     */
     function expandAllNodes(start = root){
       expand(start);
       update(start);
@@ -150,18 +330,21 @@ async function loadData() {
     }
 
     /* 
-     * 
-     * Return true if a collapsed child exists
+     * Called when the circular button in the bottom left of a node is clicked,
+     * in order to decide which of expandAllNodes() or collapseAllNodes() should be called
+     *
+     * Return true if there is at least one collapsed child
+     * somewhere below the node [start].
      */
     function collapsedChildExists(start){
 
-      if (!start.children && !start._children)
-        return;
+      if (!start.children && !start._children) // edge case - this is a leaf node
+        return false;
 
-      if (start._children) // the node has collapsed children
+      else if (start._children) // the node has collapsed children
         return true;
 
-      if (start.children){
+      else if (start.children){ // recursively check children
         for (let child of start.children){
           if (collapsedChildExists(child))
             return true;
@@ -451,7 +634,8 @@ async function loadData() {
             }
             update(d);
             setAllPlusMinusButton(); // update BOTH plus minus ('show-more' and 'show-all')
-            resizeCanvas(treeData, node_width, node_height);
+            //resizeCanvas(treeData, node_width, node_height);
+            //repositionTree(d);
           });
 
       // ****************** ".show-all" button section ***************************
@@ -511,7 +695,7 @@ async function loadData() {
       nodeUpdate.transition()
         .duration(duration)
         .attr("transform", function(d) { 
-            return "translate(" + (d.x-treeBbox.left) + "," + d.y + ")";
+            return "translate(" + (d.x) + "," + d.y + ")";
          });
     
       // Update the node attributes and style
@@ -527,7 +711,7 @@ async function loadData() {
       var nodeExit = node.exit().transition()
           .duration(duration)
           .attr("transform", function(d) {
-              return "translate(" + (source.x-treeBbox.left) + "," + source.y + ")";
+              return "translate(" + (source.x) + "," + source.y + ")";
           })
           .remove();
     
@@ -549,7 +733,7 @@ async function loadData() {
       var linkEnter = link.enter().insert('path', "g")
           .attr("class", "link")
           .attr('d', function(d){
-            var o = {x: source.x0+treeBbox.left, y: source.y0}
+            var o = {x: source.x0, y: source.y0}
             return diagonal(o, o)
           });
 
@@ -598,7 +782,7 @@ async function loadData() {
     
       // Store the old positions for transition.
       nodes.forEach(function(d){
-        d.x0 = d.x - treeBbox.left;
+        d.x0 = d.x;
         d.y0 = d.y;
       });
     
@@ -606,10 +790,10 @@ async function loadData() {
       // Creates a curved (diagonal) path from parent to the child nodes
       function diagonal(s, d) {
     
-        const path = `M ${s.x - treeBbox.left} ${s.y}
-                      C ${(s.x + d.x) / 2 - treeBbox.left} ${s.y},
-                        ${(s.x + d.x) / 2 - treeBbox.left} ${d.y},
-                        ${d.x - treeBbox.left} ${d.y}`
+        const path = `M ${s.x} ${s.y}
+                      C ${(s.x + d.x) / 2} ${s.y},
+                        ${(s.x + d.x) / 2} ${d.y},
+                        ${d.x} ${d.y}`
         return path
       }
 

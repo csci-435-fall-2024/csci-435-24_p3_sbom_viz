@@ -1,12 +1,35 @@
 // Extract JSON of license data from the license endpoint
 export async function getLicenseData() {
-    const response = await fetch("http://127.0.0.1:8000/license/");
-    const freq_json = await response.json();
-    const freq_result = processLicenseData(freq_json["distribution"]); // convert to a frequency list
+    // Try to fetch from /license/,
+    // if we encounter an error than alert the user
+    try {
+        const response = await fetch("http://127.0.0.1:8000/license/");
+        if (response.ok){
+            
+            const freq_json = await response.json();
+            const freq_result = processLicenseData(freq_json["distribution"]); // convert to a frequency list
+        
+            const restr_result = await getLicenseRestrictiveness(freq_result);
+            var combined = getCombinedJson({ frequency: freq_result, restrictiveness: restr_result });
 
-    const restr_result = await getLicenseRestrictiveness(freq_result);
+            // remove "loading..."
+            document.getElementById("licenses-loading").innerHTML = "";
+            //unhide ui elements
+            var hidden = document.querySelectorAll('.hidden')
+            hidden.forEach(element => element.classList.remove('hidden'));
+        
+            return combined;
+        }
+        // if response not ok
+        throw new Error("Something went wrong when getting license info")
+    }
 
-    return getCombinedJson({ frequency: freq_result, restrictiveness: restr_result });
+    catch (error) {
+        document.querySelector('#licenses-loading').innerHTML = `Sorry!<br>${error}`
+
+        alert("Sorry, something went wrong when gathering security information from the inputted SBOM. Neither bomber nor trivy were able to parse the file. Please try again with another file.")
+        console.log(error);
+    }
 } 
 
 // Process the extracted license data to convert it to the proper format

@@ -19,20 +19,20 @@
         <a href="http://127.0.0.1:8000/vulnerabilities" id="vulnerabilities-link" class="right">Vulnerabilities</a>
         <a href="http://127.0.0.1:8000/pdf-preview" id="pdf-preview-link" class="right">PDF Preview</a>
     </div>
-    <div class="body-space"> <!-- Put all page content inside this div (body-space) so it will not be drawn beneath the navigation bar. -->
+    <div class="body-space licenses"> <!-- Put all page content inside this div (body-space) so it will not be drawn beneath the navigation bar. -->
         <div class="centered-title">Licenses</div>
 
-        <div id="license-count-container" class="severity">
-            <h2 class="centered">Number of Distinct Licenses: <span id="number-distinct-licenses">15</span></h2>
+        <div id="licenses-loading" class="centered">Loading...</div>
+
+        <div id="license-count-container hidden">
+            <h2 class="centered hidden">Number of Distinct Licenses: <span id="number-distinct-licenses">  </span></h2>
         </div>
-        <div id="top-view">
-            <div id="distribution-container" class="distribution">
+        <div class="analysis-content hidden">
+            <div id="distribution-container">
                 <h2>Distribution</h2>
                 <div id="license-pie-chart-container"></div>
             </div>
-
-            
-            <div id="license-restrictiveness-container" class="licenses">
+            <div id="license-restrictiveness-container">
                 <h2>License Information</h1>
                 <label for="restrictivenessFilter">Filter by Restrictiveness:</label>
                 <select id="restrictivenessFilter">
@@ -49,6 +49,7 @@
                     <table id="licenseTable"></table>
                 </div>
                 <small>Link to License may not be valid.</small>
+
             </div>
 
         </div>
