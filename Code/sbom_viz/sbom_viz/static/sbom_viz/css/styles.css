@@ -233,7 +233,6 @@ rect#node-container.node { /* Large rect node container */
   color: #151515;
   margin: auto;
   text-align: center;
-  padding-bottom: 30px;
 }
 
 .centered {
@@ -245,13 +244,85 @@ rect#node-container.node { /* Large rect node container */
   font-weight: bold;
 }
 
-/* vulnerabilities page */
+.licenses {
+
+  label {
+    display: block;
+    padding-bottom: 2px;
+  }
+
+  select {
+    padding: 10px;
+    margin-bottom:5px;
+    background-color: #f9f9f9;
+    border: 1px solid black;
+    position: sticky;
+    top: 0; /* Always fixed at the top while scrolling */
+    z-index: 10;
+  }
+
+  #table-container{
+    max-height: 400px; /* Set max scroll height */
+    overflow-y: auto; /* Enable scrolling */
+    overflow-x: auto;
+    border: 1px solid black; 
+  }
+
+  table {
+    width: 700px;
+    border-collapse: collapse;
+
+    /* For the SPDX license links in the table */
+    a {
+      color: blue;
+      text-decoration: underline;
+    }
+    a:hover {
+      color: darkblue;
+      text-decoration: none;
+    }
+  }
+
+  /* Header sticky on scrolling */
+  thead th {
+    position: sticky;
+    top: 0;
+    background-color: lightgray;
+    font-weight: bold;
+    padding: 5px;
+    text-align: left;
+    border-left: 1px solid black;
+    border-right: 1px solid black;
+  }
+
+  tbody tr {
+    border: 1px solid black;
+    height: 30px;
+  }
+
+  tbody td {
+    padding: 5px;
+    text-align: left;
+    border-right: 1px solid black;
+  }
+  
+}
+/* main content for vuln and licenses page */
 #top-view {
-  margin-top: 20px;
+  margin: 0px 50px 50px 50px;
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
+  flex-wrap: nowrap;
+  justify-content: space-evenly;
+  border: dodgerblue 5px solid;
+  border-radius: 15px;
+  gap: 30px;
+}
+
+#distribution-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 #severity-container{
@@ -262,13 +333,6 @@ rect#node-container.node { /* Large rect node container */
 /* add padding to the left so they are indented */
 #severity-lines {
   padding-left: 20px;
-}
-
-#distribution-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
 }
 
 /* Shorten distance between "Distribution" and pie chart*/

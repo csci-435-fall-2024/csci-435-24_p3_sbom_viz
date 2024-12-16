@@ -4,6 +4,8 @@
 _csci-435-24_p3_sbom_viz_
 
 ## Installation
+Python *(parsing, security analysis)* and Go *(license classification)* are required.
+
 Clone the repo, and run the following lines to create a virtual environment:
 
 ```bash
@@ -78,7 +80,7 @@ _A note on **Ghost Nodes**_:
 ---
 
 ### Vulnerability Analysis
-After an SBOM has been uploaded, our analysis of the vulnerabilities present in the SBOM can be viewed on the Vulnerabilities tab. The tool finds the vulnerabilities present in the SBOM by parsing the file with [trivy](https://github.com/aquasecurity/trivy). In case trivy fails in parsing and analyzing the SBOM, we have [bomber](https://github.com/devops-kung-fu/bomber) set up as a backup. Ensure that both of these executables are extracted to the correct folder as shown above in the Installation section, otherwise the tool will not be able to find the executables and conduct the security analysis.
+After an SBOM has been uploaded, our analysis of the vulnerabilities present in the SBOM can be viewed on the Vulnerabilities tab. The tool finds the vulnerabilities present in the SBOM by parsing the file with [trivy](https://github.com/aquasecurity/trivy). In case trivy fails in parsing and analyzing the SBOM, we have [bomber](https://github.com/devops-kung-fu/bomber) set up as a backup. Ensure that both of these programs are on your system's path as described in the installation section, otherwise the tool will not be able to find the executables and conduct the security analysis.
 
 Security analysis happens in `security.py` and generates a JSON which can be found by navigating to `/sec-info/`. The formatted analysis page includes
 - A summary of the vulnerability distribution, as the number of vulnerabilities in each CVSS severity category,
@@ -93,6 +95,11 @@ More information about a specific vulnerability can be found by searching for th
 ### License Analysis
 After an SBOM has been uploaded, our analysis of the licenses present in the SBOM can be viewed on the Licenses tab. The tool looks for any license attached to a software component in the SBOM and presents a distribution of the licenses found in the form of a pie chart, as well as in a table with the relative composition of each respective license. 
 
+### _License Classifications_
+- Our tool performs license classification to try to infer how restrictive the software licenses are in the inputted SBOM. 
+- We planned to use `trivy` for this, because it has built in license analysis, but it was not able to parse the licenses as they are in most SBOM files. Most licenses are in the form "LicenseRef-LICENSE-12345", and trivy does not recognize that format.
+- We previously dealt with this problem in `license_data.js`, where we strip the license data found from the `/license/` endpoint of any extraneous information to display it on the **Licenses** page.
+- To remedy the issue with trivy, this cleaned license information is piped into the same tool that trivy uses - Google's License Classifier, which can be found in `scripts/license_classifier.go`.
+- When undergoing license classification for the first time, it may take a second to install the required libraries.
+
 ### Planned features
-- More compatability for vulnerability analysis
-- Making inferences based off of licenses found (what can I do with this software?)

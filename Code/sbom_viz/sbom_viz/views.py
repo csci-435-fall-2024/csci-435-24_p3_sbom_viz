@@ -1,3 +1,4 @@
+from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from sbom_viz.scripts.tree_builder import TreeBuilder
@@ -5,6 +6,7 @@ from sbom_viz.scripts.relationship_map_builder import RelationshipMapBuilder
 from sbom_viz.config.feature_flags import FLAGS
 from sbom_viz.scripts import sbom_parser_factory, tree_builder, security
 from typing import Optional
+from sbom_viz.scripts.license_classifier_helper import process_with_go_script # calls the Go script
 import json
 import os
 
@@ -148,15 +150,7 @@ def home(request):
     else:
         pass
         #return render(request, 'sbom_viz/index.html')    
-'''
-Deprecated - previously, fileInputPage.js would submit an HttpResponse to 127... /data.json to retrieve tree.
-Now, it queries 127... /tree/ and receives a JsonResponse.
 
-# Used by D3 to gather data for tree
-def json(request):
-    return render(request, 'sbom_viz/data.json')
-'''
-    
 '''
 Builds and returns the Tree
 '''
@@ -259,3 +253,31 @@ def get_sec_info(request):
 def get_license(request):
     global sbom_parser
     return JsonResponse(data=sbom_parser.get_license_information(), json_dumps_params={"indent": 4})
+
+# Called from license_data.js : 
+#   Receives all the licenses present in the SBOM
+#   Processes them and obtains a restrictiveness classification
+#   for each license, then stores that information in the /licenses-clean/ endpoint
+@csrf_exempt
+def get_licenses_clean(request):
+    if request.method == 'POST':
+        try:
+            # Extract the cleaned licenses from the request
+            cleaned_licenses = json.loads(request.body)
+
+
+            # Process the licenses with the Go script
+            result = process_with_go_script(cleaned_licenses)
+            print(result)
+
+            if 'error' in result:
+                # Return an error response if the Go script failed
+                return JsonResponse(result, status=500)
+
+            # Otherwise, return the restrictiveness data
+            return JsonResponse({'restrictiveness': result})
+
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON data'}, status=400)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)

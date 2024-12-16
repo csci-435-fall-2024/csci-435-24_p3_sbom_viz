@@ -1,26 +1,11 @@
 import "https://d3js.org/d3.v7.min.js";
 import { getLicenseData } from "./license_data.js";
 
-// Temporary licenses distribution data (replace with endpoint later)
-/*var data_full = [
-    { "license name" : 'license1', 'version':'1.0', "count" : 4 },
-    { "license name" : 'license2', 'version':'1.0', "count" : 17 },
-    { "license name" : 'license3', 'version':'1.0', "count" : 2 },
-    { "license name" : 'license4', 'version':'1.0', "count" : 1 },
-    { "license name" : 'license5', 'version':'1.0', "count" : 3 },
-    { "license name" : 'license6', 'version':'1.0', "count" : 7 },
-    { "license name" : 'license7', 'version':'1.0', "count" : 9 },
-    { "license name" : 'license8', 'version':'1.0', "count" : 1 },
-    { "license name" : 'license9', 'version':'1.0', "count" : 8 },
-    { "license name" : 'license10', 'version':'1.0', "count" : 0 },
-    { "license name": 'other', 'version':'n/a', "count": 10 }, // for unidentifiable or missing license types
-  ]*/
-
 async function setUpPieChart() {
     let data_full = await getLicenseData();
 
-    let data = data_full.map(entry => ({"license name": entry["license name"], "count": entry["count"]})).filter(license => license["license name"] !== "other");
-    
+    let data = data_full.map(entry => ({"license": entry["license"], "count": entry["count"]})).filter(license => license["license"] !== "other");
+    data = data.slice(0,10);
     // Inspired by https://d3-graph-gallery.com/graph/pie_annotation.html
     const width = 500;
     const height = 500;
@@ -48,7 +33,7 @@ async function setUpPieChart() {
     // The range part makes it color kind of like severity, from:
     // https://observablehq.com/@d3/pie-chart/2
     const color = d3.scaleOrdinal()
-                    .domain(data.map(d => d["license name"]))
+                    .domain(data.map(d => d["license"]))
                     .range(d3.quantize(t => d3.interpolateSpectral(t * 0.8 + 0.1), data.length))
     
     const labelRadius = arc.outerRadius()() * 0.8;
@@ -65,7 +50,7 @@ async function setUpPieChart() {
         .enter()
         .append("path")
             .attr("d", arc)
-            .attr("fill", d => color(d.data["license name"]))
+            .attr("fill", d => color(d.data["license"]))
             .attr("stroke", "white")
         .style("stroke-width", "2px")
         // on hover, show the name of this category
@@ -76,7 +61,7 @@ async function setUpPieChart() {
         // count
         // percentage of total vulnerabilities
         .append("title")
-            .text(d => d.data["license name"]); // show name on hover TODO make this more thorough
+            .text(d => d.data["license"]); // show name on hover TODO make this more thorough
         
     
     // Add labels and count to each slice
@@ -90,7 +75,7 @@ async function setUpPieChart() {
             .call(text => text.append("tspan")
                 .attr("y", "-0.4em")
                 .attr("font-weight", "bold")
-                .text(d => d.data["license name"]))
+                .text(d => d.data["license"]))
             // and this is the smaller label for the count of this category
             .call(text => text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan") // only show count if it will fit
                 .attr("x", 0)
