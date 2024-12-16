@@ -34,7 +34,7 @@ class SbomParserFactory():
             except Exception:
                 pass
         if data_model == "json":
-            if "SPDXID" in sbom_string:
+            if "SPDXID" in sbom_string or "spdxId" in sbom_string:
                 return SpdxJsonParser()
             else:
                 return CycloneDxJsonParser()
