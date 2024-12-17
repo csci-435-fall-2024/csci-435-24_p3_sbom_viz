@@ -185,7 +185,7 @@ class SPDXParser():
 
     def parse_file(self, path):
         # store file contents as a string in self.data
-        with open(path, 'r') as f: 
+        with open(path, 'r', encoding="utf-8") as f: 
             self.data = f.read()
         # determine and store format in self.format 
         try:
@@ -194,14 +194,14 @@ class SPDXParser():
         except ValueError:
             pass
         # determine and store version in self.version
-        self.get_version()
-        self.parse_licensing_information()
-        self.parse_document_information()
-        self.parse_file_information()
-        self.parse_package_information()
-        self.parse_relationship_information()
-        self.parse_id_to_data_map()
-        self.parse_purl_to_id_map()
+        # self.get_version()
+        # self.parse_licensing_information()
+        # self.parse_document_information()
+        # self.parse_file_information()
+        # self.parse_package_information()
+        # self.parse_relationship_information()
+        # self.parse_id_to_data_map()
+        # self.parse_purl_to_id_map()
         
     
     def get_document(self):

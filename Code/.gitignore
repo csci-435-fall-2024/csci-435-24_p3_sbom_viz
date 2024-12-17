@@ -19,3 +19,8 @@ db.sqlite3
 
 # Security 
 executables/
+sbom.json
+# ^^^ in case not deleted
+
+go.mod
+go.sum
