@@ -92,6 +92,8 @@ Security analysis happens in `security.py` and generates a JSON which can be fou
   - A description of the vulnerability.
 More information about a specific vulnerability can be found by searching for the related CVE_ID, and all vulnerabilities found in the SBOM can be found in the `Effected_Components` field at the bottom of `/sec-info/`.
 
+Note that if [bomber] is used as the final vulnerability scanning tool, the top 10 table will be empty.
+
 ### License Analysis
 After an SBOM has been uploaded, our analysis of the licenses present in the SBOM can be viewed on the Licenses tab. The tool looks for any license attached to a software component in the SBOM and presents a distribution of the licenses found in the form of a pie chart, as well as in a table with the relative composition of each respective license. 
 

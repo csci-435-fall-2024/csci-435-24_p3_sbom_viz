@@ -22,7 +22,7 @@ class TrivyOutputParser():
         elif severity=="UNKNOWN":
             sec_info["Summary"]["SeverityDistr"][5]["count"]+=1
 
-    def __update_top_10(self, sec_info:dict, vuln_dict:dict, sbom_id, cve_to_remove=None):
+    def __update_top_10(self, sec_info:dict, vuln_dict:dict, sbom_id:str, cve_to_remove=None):
         top_10_vuln= {"SBOM_ID": "",
                     "SeveritySource":"",
                     "Title":"",
@@ -30,9 +30,11 @@ class TrivyOutputParser():
                     "Severity": "",
                     "Displayed_CVSS": 0}
         
-        # update top 10
+        # remove cve that is no longer in top 10
         if cve_to_remove is not None:
             del sec_info["Summary"]["Top_10"][cve_to_remove]
+            
+        # create a dictionary of info for the new top 10
         for key in top_10_vuln.keys():
             if key == "SBOM_ID":
                 top_10_vuln[key]=sbom_id
@@ -46,7 +48,7 @@ class TrivyOutputParser():
         purl_id_map=self.sbom_parser.get_purl_id_map()
         return purl_id_map[purl]
 
-    def __make_vuln_dict(self, vuln_info):
+    def __make_vuln_dict(self, vuln_info:dict):
         keys_missing=[]
         vuln_dict={"VulnerabilityID": "",
                     "SeveritySource":"",
@@ -70,8 +72,6 @@ class TrivyOutputParser():
                     keys_missing.append(key)
                 elif key ==  "Displayed_CVSS" and "CVSS" in keys_missing:
                     keys_missing.append("Displayed_CVSS")
-                #elif key == "References" and ("PrimaryURL" not in vuln_info.keys() and "References" not in vuln_info.keys()):
-                    #keys_missing.append("References")
 
             for key in vuln_dict.keys():
                 if key in keys_missing:
@@ -112,12 +112,13 @@ class TrivyOutputParser():
                             "Top_10":{}}, 
                     "Effected_Components":{}}
 
-        top_10_cvss={} #tied scores?
+        top_10_cvss={} 
         for pkg_type in self.scan_output["Results"]:
             # no vulnerabilites found for packages of package type
             if "Vulnerabilities" not in pkg_type.keys():
                 logger.info("[trivy parser] No vulnerabilites found for packages with package type "+pkg_type["Type"])
                 continue
+
             for vuln in pkg_type["Vulnerabilities"]:
                 purl=vuln["PkgIdentifier"]["PURL"]
                 sbom_id=self.__find_corresponding_sbom_component(purl)
@@ -144,7 +145,7 @@ class TrivyOutputParser():
                     top_10_cvss={key: value for key, value in sorted(top_10_cvss.items(), key=lambda item: item[1], reverse=True)}
                     self.__update_top_10(sec_info, vuln_dict, sbom_id)
                 # if cvss is greater than the current #10, add it to the top 10 and drop current #10
-                elif cvss>list(top_10_cvss.items())[-1][1]: #tie? 
+                elif cvss>list(top_10_cvss.items())[-1][1]:  
                     lowest_cve, lowest_cvss = top_10_cvss.popitem()
                     cve_to_remove=lowest_cve
                     top_10_cvss[vuln_dict["VulnerabilityID"]]=cvss

@@ -247,15 +247,13 @@ def get_sec_info(request):
     global sbom_parser
     if uploaded:
         sec_output=security.get_security_output(sbom_parser)
-        
+        if sec_output==False:
+            return JsonResponse({'error': 'Error occured while scanning for security vulnerabilies.'}, status=400)
+        if sec_output==None:
+            return JsonResponse({'error': 'Both trivy and bomber found no packages to scan.'}, status=400)
         if request.method == "GET":
-            if sec_output==False:
-                return HttpResponse("Unable to scan for vulnerabilites. See security.log for more information.", content_type="text/plain")
-        
-            if sec_output==None:
-                return HttpResponse("Found no packages to scan.", content_type="text/plain")
-            
             return JsonResponse(data=sec_output, json_dumps_params={"indent": 4})
+                
             
 def get_license(request):
     global sbom_parser

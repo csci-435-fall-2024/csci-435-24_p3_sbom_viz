@@ -12,7 +12,7 @@ class BomberOutputParser():
         return purl_id_map[purl]
 
 
-    def __make_vuln_dict(self, vuln_info):
+    def __make_vuln_dict(self, vuln_info:dict):
         vuln_dict={"VulnerabilityID": "",
                     "SeveritySource":"",
                     "Status":"",
@@ -31,14 +31,17 @@ class BomberOutputParser():
             vuln_dict["Description"]=vuln_info["description"]
             vuln_dict["Severity"]=vuln_info["severity"]
 
+            # if the vulnerability id is a CVE id, add NVD as a reference
             if "CVE" in vuln_dict["VulnerabilityID"]:
                 nvd_ref="https://nvd.nist.gov/vuln/detail/"+vuln_dict["VulnerabilityID"]
                 vuln_dict["References"].append(nvd_ref)
 
+            # if the vulnerability id is a GHSA id, add ghsa as a reference
             elif "GHSA" in vuln_dict["VulnerabilityID"]:
                 ghsa_ref="https://github.com/advisories/"+vuln_dict["VulnerabilityID"]
                 vuln_dict["References"].append(ghsa_ref)
 
+            # if the vulnerability id is a RUSTSEX id, add rustsec as a reference
             elif "RUSTSEC" in vuln_dict["VulnerabilityID"]:
                 rustsec_ref="https://rustsec.org/advisories/"+vuln_dict["VulnerabilityID"]+".html"
                 vuln_dict["References"].append(rustsec_ref)
