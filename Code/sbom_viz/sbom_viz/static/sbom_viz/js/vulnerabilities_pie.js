@@ -2,26 +2,7 @@ import "https://d3js.org/d3.v7.min.js";
 import { getVulnerabilityDistribution } from "./vulnerability_data.js";
 
 
-// Temporary vulnerability distribution data (replace with endpoint later)
-// ** Just added a few more to see how pie chart looks when crowded
-/*
-let data = [
-    {"name":"Critical", "count":10},
-    {"name":"Critical-High", "count":15},
-    {"name":"High", "count":20},
-    {"name":"High-Medium", "count":25},
-    {"name":"Medium", "count":10},
-    {"name":"Medium-Low", "count":15},
-    {"name":"Low", "count":30},
-    {"name":"Low-None", "count":35},
-    {"name":"None", "count":2},
-]
-    */
-
-
 async function setUpPieChart(){
-
-
 
     // Inspired by https://d3-graph-gallery.com/graph/pie_annotation.html
     const width = 500;
@@ -70,18 +51,13 @@ async function setUpPieChart(){
             .attr("fill", d => color(d.data.name))
             .attr("stroke", "white")
         .style("stroke-width", "2px")
-        // on hover, show the name of this category
-        // TODO -> implement a more through mouseover behavior
-        // like create a div that has:
-        //
-        // name
-        // count
-        // percentage of total vulnerabilities
+        // on hover, show the name of this category and the count
         .append("title")
-            .text(d => d.data.name); // show name on hover TODO make this more thorough
+            .text(d => `${d.data.name}\n${d.data.count}`);
         
 
-    // Add labels and count to each slice
+    // Add labels and count to each slice -
+    // Only if there is space to do so
     svg.selectAll("text")
         .data(pie(data))
         .enter()
@@ -89,7 +65,7 @@ async function setUpPieChart(){
             // this is the bold label of the caregory
             .attr("transform", d => `translate(${arcLabel.centroid(d)})`) // using arcLabel instead of arc moves it towards the border
             .attr("text-anchor", "middle")
-            .call(text => text.append("tspan")
+            .call(text => text.filter(d => (d.endAngle - d.startAngle) > 0.25).append("tspan")
                 .attr("y", "-0.4em")
                 .attr("font-weight", "bold")
                 .text(d => d.data.name))
@@ -122,6 +98,7 @@ async function setUpSeveritySummary(){
     });
 } // setUpSeveritySummary()
 
-let data = await getVulnerabilityDistribution();
+let data = await getVulnerabilityDistribution()
+data = data.slice(0,10);
 setUpPieChart();
 setUpSeveritySummary();

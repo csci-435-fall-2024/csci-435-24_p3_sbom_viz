@@ -1,63 +1,51 @@
-import { FileDisplayPage } from "./fileDisplayPage.js";
-
-/**
- * Represents the file input page on the web application and its ability to upload and accept
- * file data from the user.
+/*
+ * Script for the file display page
+ * 1) Enable header navigation links if a file has been uploaded,
+ * 2) Show the [uploaded file name], if the server knows what file to use
+ * 3) Wait for a new file to be uploaded, and update the [updated file name] when needed
  */
-export class FileInputPage {
-    // Set up the page
-    constructor(app) {
-        this.app = app;
-        this.file = null;
-        // Methods must be bound to their owner object so they can access and modify the properties of their owner ("this")
-        this.selectFile = this.selectFile.bind(this);
-        this.uploadFileText = this.uploadFileText.bind(this);
-    }
 
-    // Render a form asking the user to input a file.
-    render() {
-        this.app.appElement.innerHTML = `
-            <form>
-                <h1>Upload File</h1>
-                <!-- Radio Selector for SBOM Standard -->
-                <label for="file-standard-selector">Select SBOM Standard:</label>
-                <div id="file-standard-selector">
-                    <!-- SPDX Radio Option -->
-                    <label for="file-standard-spdx">SPDX</label>
-                    <input type="radio" name="file-standard-selector-option" id="file-standard-spdx" value="spdx" checked />
-                    <!-- CycloneDX Radio Option -->
-                    <label for="file-standard-cyclone-dx">CycloneDX</label>
-                    <input type="radio" name="file-standard-selector-option" id="file-standard-cyclone-dx" value="cyclone-dx" />
-                </div>
-                <div>
-                    <!-- SBOM File Select Button -->
-                    <label for="file-select-input">Select File:</label>
-                    <input type="file" name="file-select-input" id="file-select-input"/>
-                </div>
-                <div>
-                    <!-- SBOM Upload File Button -->
-                    <button type="button" id="upload-button" disabled>Upload File</button>
-                </div>
-            </form>
-        `; 
-        document.getElementById("file-select-input").addEventListener("change", this.selectFile); // When the "Select File" button is clicked, store the filename and activate the upload file button if a file was selected
-        document.getElementById("upload-button").addEventListener("click", this.uploadFileText); // When the "Upload File" button is clicked, upload the file text to the app and display it
-    }
-
-    // Store the file name and activate the upload button if the file exists
-    selectFile(event) {
-        this.file = event.target.files[0]; // Select the first file in a list returned from the file dialog
-        document.getElementById("upload-button").disabled = (this.file ? false : true); // Enable the upload button if a file has been selected, otherwise disable it (a file cannot be read if it has not been selected)
-    }
-
-    // Read a file when uploaded, and switch from the "file input form" page to the "display file" page
-    uploadFileText() {
-        let fileReader = new FileReader();
-        fileReader.onload = () => {
-            // When the file is read, upload the file contents as plaintext and switch the page to display the file rather than ask the user to select a file. 
-            this.app.page = new FileDisplayPage(this.app, fileReader.result);
-            this.app.render(); // Re-render the app to display the new page.
-        };
-        fileReader.readAsText(this.file); // Read the file to execute fileReader.onload()
+// Enable the navigation links ONLY if a file has already been uploaded.
+async function setUpNavLinks() {
+    const response = await fetch("http://127.0.0.1:8000/uploaded");
+    const json = await response.json();
+    const uploaded = json["uploaded"];
+    if (uploaded) {
+        // Set destinations
+        document.getElementById("diagram-link").setAttribute("href", "diagram/");
+        document.getElementById("licenses-link").setAttribute("href", "licenses/");
+        document.getElementById("vulnerabilities-link").setAttribute("href", "vulnerabilities/");
+        document.getElementById("pdf-preview-link").setAttribute("href", "pdf-preview/");
+    } else {
+        // Set styling
+        document.getElementById("diagram-link").classList.add("disabled-nav-link");
+        document.getElementById("licenses-link").classList.add("disabled-nav-link");
+        document.getElementById("vulnerabilities-link").classList.add("disabled-nav-link");
+        document.getElementById("pdf-preview-link").classList.add("disabled-nav-link");
     }
 }
+
+// On page initialization, display the name of the file if it has already been uploaded on a previous visit to the page.
+async function setUpFileName() {
+    const response_uploaded = await fetch("http://127.0.0.1:8000/uploaded");
+    const json_uploaded = await response_uploaded.json();
+    const uploaded = json_uploaded["uploaded"];
+    if (uploaded) {
+        const response_filename = await fetch("http://127.0.0.1:8000/filename");
+        const json_filename = await response_filename.json();
+        const filename = json_filename["filename"];
+        document.getElementById("filename-display").innerHTML = `<div class="bold centered">Selected File:</div>${filename}`;
+    }
+}
+
+setUpNavLinks();
+setUpFileName();
+
+// When a new file has been uploaded, change the text of the filename field to display the new file to be uploaded
+document.getElementById("file-select-input").addEventListener("change", (e) => {
+    if (e.target.files.length == 0) { // If the file selection was removed,
+        setUpFileName();              // reset the current SBOM file to the one currently uploaded, or no file if none has been uploaded.
+    } else {
+        document.getElementById("filename-display").innerHTML = `<div class="bold centered">Selected File:</div>${e.target.files[0].name}`;   // If a file was selected, display the name of the selected file to the user
+    }
+})

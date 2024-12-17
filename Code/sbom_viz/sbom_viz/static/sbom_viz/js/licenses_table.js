@@ -2,92 +2,86 @@ import "https://d3js.org/d3.v7.min.js";
 
 import { getLicenseData } from './license_data.js';
 
-/*var data = [
-    { "license name" : 'license1', 'version':'1.0', "count" : 4 },
-    { "license name" : 'license2', 'version':'1.0', "count" : 17 },
-    { "license name" : 'license3', 'version':'1.0', "count" : 2 },
-    { "license name" : 'license4', 'version':'1.0', "count" : 1 },
-    { "license name" : 'license5', 'version':'1.0', "count" : 3 },
-    { "license name" : 'license6', 'version':'1.0', "count" : 7 },
-    { "license name" : 'license7', 'version':'1.0', "count" : 9 },
-    { "license name" : 'license8', 'version':'1.0', "count" : 1 },
-    { "license name" : 'license9', 'version':'1.0', "count" : 8 },
-    { "license name" : 'license10', 'version':'1.0', "count" : 0 },
-    { "license name": 'other', 'version':'n/a', "count": 10 }, // for unidentifiable or missing license types
-  ]*/
 
-  function tabulate(data, columns) {
-	var table = d3.select('#license-table').append('table')
-        .style("border", "2px black solid")
-        .style("border-collapse", "collapse");
-	var thead = table.append('thead');
-	var	tbody = table.append('tbody');
+async function setUpTable(){
 
-	// append the header row
-	thead.append('tr')
-	  .selectAll('th')
-	  .data(columns).enter()
-	  .append('th')
-	    .text(function (d) { return d; })
-        .style("border", "1px black solid")
-        .style("padding", "5px")
-        .style("background-color", "lightgray")
-        .style("font-weight", "bold")
-        .style("text-transform", "uppercase");
-
-	// create a row for each object in the data
-	var rows = tbody.selectAll('tr')
-	  .data(data)
-	  .enter()
-	  .append('tr')
-      
-	// create a cell in each row for each column
-	var cells = rows.selectAll('td')
-	  .data(function (row) {
-	    return columns.map(function (column) {
-	      return {column: column, value: row[column]};
-	    });
-	  })
-	  .enter()
-	  .append('td')
-	    .text(function (d) { return d.value; })
-        .style("border", "1px black solid")
-        .style("padding", "5px")
-        .on("mouseover", function(){
-            d3.select(this).style("background-color", "powderblue");
-        })
-        .on("mouseout", function(){
-            d3.select(this).style("background-color", "white");
-        });
-
-  return table;
-}
-
-async function setUpTable() {
-
-  const data = (await getLicenseData()).map(entry => ({"license name": entry["license name"], "count": entry["count"]}));
-  console.log(data);
+  const licenses = await getLicenseData();
 
   // Calculate percentage composition for each license of total
-  let total_count = data.reduce((acc, license) => acc + license["count"], 0);
-  data.forEach(license => {
+  let total_count = licenses.reduce((acc, license) => acc + license["count"], 0);
+  licenses.forEach(license => {
       license["composition"] = `${(license["count"] / total_count * 100).toFixed(1)}%`
   });
 
-  // render the table
-  data.sort((a,b) => b.count - a.count); // sort by highest value
-  tabulate((data.filter(license => license["license name"] !== "other")).slice(0,10), ['license name', 'count', 'composition']); // table with all columns
+  console.log(licenses);
 
   // Count the number of distinct licenses
-  let num_licenses = data.reduce((acc, license) => ((license["license name"] !== "other") ? acc + 1 : acc), 0); // count all rows except for the "other" row, if it is present
+  // count all rows except for the "other" row, if it is present
+  let num_licenses = licenses.reduce((acc, license) => ((license["license"] !== "other") ? acc + 1 : acc), 0); 
+  // update the number of distinct licenses
   document.getElementById("number-distinct-licenses").textContent = num_licenses;
 
-  /*
-  if data comes in as csv:
-  d3.csv("path/to/data.csv", function(data) {
-    tabulate(data, ["name", "age"]);
+  // asterisk to let the user know that the link may 
+  // not be valid, due to incorrect parsing of the license text
+  const columns = ["License*", "Restrictiveness", "Count", "Composition"];
+
+  function updateTable(filter = 'all') {
+    const table = d3.select("#licenseTable");
+    table.html('') // Clear existing table 
+    const tableBody = table.append('tbody');
+
+    // Filter data based on restrictiveness
+    const filteredData = licenses.filter(d => {
+      const restrictiveness = d.restrictiveness.toLowerCase() || 'unknown'; // Treat empty string as 'unknown'
+      return filter === 'all' || restrictiveness === filter.toLowerCase();
+    });
+
+    var thead = table.append("thead");
+
+    // append the header row
+    thead.append('tr')
+      .selectAll('th')
+      .data(columns)
+      .enter()
+      .append('th')
+        .text(function (d) { return d; })
+
+    // Create table rows and cells with stylings
+    const rows = tableBody.selectAll('tr')
+      .data(filteredData)
+      .enter()
+      .append('tr');
+
+    // Append cells to each row
+    rows.selectAll('td')
+      .data(d => [
+        `<a href="${getSpdxURL(d.license)}" target="_blank">${d.license}</a>`, // Clickable SPDX link
+        d.restrictiveness || 'Unknown', 
+        d.count,
+        d.composition]) // Map data to table cells
+      .enter()
+      .append('td')
+      .html(d => d)
+      .on("mouseover", function() {
+        d3.select(this).style("background-color", "powderblue");
+      })
+      .on("mouseout", function() {
+        d3.select(this).style("background-color", "white");
+      });
+  }
+
+  // Initial table load
+  updateTable();
+
+  // Filter table based on dropdown selection
+  d3.select('#restrictivenessFilter').on('change', function() {
+    const filter = d3.select(this).property('value').toLowerCase();
+    updateTable(filter);
   });
-  */
+}
+
+function getSpdxURL(license) {
+  return `https://spdx.org/licenses/${encodeURIComponent(license)}.html`;
 }
 
 setUpTable();
