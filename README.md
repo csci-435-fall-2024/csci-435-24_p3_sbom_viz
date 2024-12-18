@@ -19,7 +19,7 @@ source sbom_env\bin\activate
 ```
 After creating the virtual environment, you will need to install a few dependencies. Run:
 ```bash
-pip install -r ./code/requirements.txt
+pip install -r ./Code/requirements.txt
 ```
 
 This will give you a virtual environment with all necessary dependencies to use the tool.
