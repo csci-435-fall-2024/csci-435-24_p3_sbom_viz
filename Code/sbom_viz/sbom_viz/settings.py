@@ -124,3 +124,35 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+LOGGING = {
+    'version': 1,  # Required by the logging configuration
+    'disable_existing_loggers': False,  # Keeps default loggers active
+    'formatters': {
+        'detailed': {
+            'format': "%(asctime)s\t%(levelname)s\t%(message)s",
+            'datefmt': "%Y-%m-%d %H:%M:%S",
+        },
+    },
+    'handlers': {
+        'security_file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',  # File handler for logging to a file
+            'filename': os.path.join(BASE_DIR, 'security.log'),  # Full path to the log file
+            'formatter': 'detailed',
+            'mode': 'w'
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'detailed',
+        },
+    },
+    'loggers': {
+        'security': {  # Logger for the security module
+            'handlers': ['security_file', 'console'],
+            'level': 'DEBUG',  # Minimum level to log
+            'propagate': False,  # Prevent log duplication in higher-level loggers
+        },
+    },
+}
