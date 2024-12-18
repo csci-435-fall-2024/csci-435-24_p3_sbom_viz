@@ -196,5 +196,6 @@ class SpdxXmlParser():
     def get_purl_id_map(self):
         return self.purl_id_map
     
+    # for scanning vulnerabilities
     def get_sbom_data(self):
         return ("xml", self.data)

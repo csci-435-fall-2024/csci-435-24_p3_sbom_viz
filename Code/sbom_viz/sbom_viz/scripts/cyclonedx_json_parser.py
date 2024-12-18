@@ -199,4 +199,4 @@ class CycloneDxJsonParser():
     
     # for scanning vulnerabilities
     def get_sbom_data(self):
-        return self.data
+        return ("json", self.data)
