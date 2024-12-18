@@ -32,7 +32,6 @@ class RelationshipMapBuilder:
 
         for relationship_type, targets in node.relationships.items():
             for target in targets:
-                #print(f"target: {target}")
                 self.relationship_map.add_relationship(child_sbom_to_node_ids[target], relationship_type)
 
         for child in node.children:
